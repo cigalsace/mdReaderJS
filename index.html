@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+		<meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noindex,nofollow" />
+        <title>cswReader</title>
+        <!--<link rel="stylesheet" href="./css/uikit.min.css" />-->
+        <link rel="stylesheet" href="./css/uikit.almost-flat.min.css" />
+        <link rel="stylesheet" href="./css/mdReader.css" />
+        <script src="./js/lib/jquery-1.11.1.min.js"></script>
+        <script src="./js/lib/mustache.js"></script>
+        <script src="./js/lib/jquery.mustache.js"></script>
+        <script src="./js/lib/uikit.min.js"></script>
+        <script src="./js/lib/addons/pagination.min.js"></script>
+        <script src="./js/codelists.js"></script>
+        <script src="./js/xpaths.js"></script>
+        <script src="./js/config.js"></script>
+        <script src="./js/helpers.js"></script>
+        <script src="./js/mdReader.js"></script>
+        <style type="text/css">
+            #content { 
+                width: 720px;
+            }
+            pre, code {
+                white-space: pre-wrap;
+                font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+            }
+            img.logo {
+                 width:80px; 
+                 max-height:200px; 
+                 max-width:200px;
+                 margin-left: -10px;
+            }
+            h3 {
+                font-weight: bold;
+            }
+            label {
+                display: block;
+                width: 160px;
+                float: left;
+            }
+            pre label {
+                width: 80px;
+                text-decoration: underline;
+            }
+            
+            @media print {
+                #content { 
+                    width: 720px;
+                }
+                pre {
+                    white-space: pre-wrap;
+                }
+            }
+        </style>
+        <script language="javascript" type="text/javascript">
+        </script>
+    </head>
+    <body>
+        <div id="content" class="uk-margin"></div>
+    </body>
+</html>
