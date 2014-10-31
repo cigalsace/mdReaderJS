@@ -4,50 +4,7 @@ html {
 body {
     margin: 10px;
 }
-#header {
-    /*
-    position:fixed;
-    left:0px;
-    top:0px;
-    margin:0;
-    padding:1px;
-    width:100%;
-    background:#fff;
-    */
-}
-#footer {
-    /*
-    position:fixed;
-    left:0px;
-    bottom:0px;
-    width:100%;
-    margin:0;
-    padding:1px;
-    background:#fff;
-    */
-}
 #content {
     position:absolute;
-    /*top:120px;*/
-    /*padding-bottom: 70px;*/
     background:#fff;
 }
-/*
-#md_list .uk-grid {
-    margin: 0 0 0 15px;
-}
-.md_grid_item {
-    width: 220px;
-    min-height: 300px;
-}
-.md_grid_item a:hover, .md_grid_item a:focus {
-    text-decoration: none;
-}
-.keywords {
-    text-transform: uppercase;
-}
-#switcher-content {
-    margin: 0;
-    padding: 0;
-}
-*/
