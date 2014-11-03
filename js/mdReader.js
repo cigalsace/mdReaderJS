@@ -1,8 +1,5 @@
-// http://www.cigalsace.net/mdReaderJS/0.01/index.html?csw=http://www.cigalsace.org/geonetwork-private/srv/fre/csw-geocatalogue&id=FR-236700019-BdOCSmutation2000-2008-20112012-CIGAL-V2
-
 $( document ).ready(function() {
-    //console.log(url_vars.csw);
-    
+    // Définition de la langue pour les labels de la page.
     var lang = 'fr';
     // Initialisation de la variable globale data
     var data = {};
@@ -11,15 +8,36 @@ $( document ).ready(function() {
 
     // Fonction pour parser fichier XML retourné par serveur CSW
     function parseXML(xml) {
+        // MD HierarchyLevel
+        var MD_HierarchyLevel = $(xml).find(xpaths.MD_HierarchyLevel).attr('codeListValue');
+        if (MD_HierarchyLevel == 'service') {
+            var Data_Title = $(xml).find(xpaths.Service_Title).text();
+            var Data_Abstract = $(xml).find(xpaths.Service_Abstract).text();
+            var Data_Dates = getDates($(xml), 'Service_Dates');
+            var Data_PointOfContacts = getContacts($(xml), 'Service_PointOfContacts');
+            var Data_Languages = getLanguages($(xml), 'Service_Languages');
+            var Data_MaintenanceFrequency = getMaintenanceFrequency($(xml), 'Service_MaintenanceFrequency');
+            var Data_CharacterSet = getCharacterSet($(xml), 'Service_CharacterSet');
+            var Data_GeographicExtents = getExtents($(xml), 'GeographicExtents', 'Service_Extents');
+            var Data_TemporalExtents = getExtents($(xml), 'TemporalExtents', 'Service_Extents');
+        } else {
+            var Data_Title = $(xml).find(xpaths.Data_Title).text();
+            var Data_Abstract = $(xml).find(xpaths.Data_Abstract).text();
+            var Data_Dates = getDates($(xml), 'Data_Dates');
+            var Data_PointOfContacts = getContacts($(xml), 'Data_PointOfContacts');
+            var Data_Languages = getLanguages($(xml), 'Data_Languages');
+            var Data_MaintenanceFrequency = getMaintenanceFrequency($(xml), 'Data_MaintenanceFrequency');
+            var Data_CharacterSet = getCharacterSet($(xml), 'Data_CharacterSet');
+            var Data_GeographicExtents = getExtents($(xml), 'GeographicExtents', 'Data_Extents');
+            var Data_TemporalExtents = getExtents($(xml), 'TemporalExtents', 'data_Extents');
+        }
         // Data title
-        var Data_Title = $(xml).find(xpaths.Data_Title).text();
         var truncatevalue = 87;
         var short_Data_Title = Data_Title.substr(0,truncatevalue);
         if (Data_Title.length > short_Data_Title.length) {
             short_Data_Title += "...";
         }
         // Data abstract
-        var Data_Abstract = $(xml).find(xpaths.Data_Abstract).text();
         var truncatevalue = 397;
         var short_Data_Abstract = Data_Abstract.substr(0,truncatevalue);
         if (Data_Abstract.length > short_Data_Abstract.length) {
@@ -34,7 +52,7 @@ $( document ).ready(function() {
             // MD_Contacts: MD_Contacts,
             MD_Language: MD_LanguageCode[$(xml).find(xpaths.MD_Language).attr('codeListValue')],
             MD_CharacterSet: MD_CharacterSetCode[$(xml).find(xpaths.MD_CharacterSet).attr('codeListValue')],
-            MD_HierarchyLevel: MD_ScopeCode[$(xml).find(xpaths.MD_HierarchyLevel).attr('codeListValue')],
+            MD_HierarchyLevel: MD_ScopeCode[MD_HierarchyLevel],
             MD_DateStamp: $(xml).find(xpaths.MD_DateStamp).text(),
             MD_StandardName: $(xml).find(xpaths.MD_StandardName).text(),
             MD_StandardVersion: $(xml).find(xpaths.MD_StandardVersion).text(),
@@ -45,12 +63,12 @@ $( document ).ready(function() {
             Data_ReferenceSystems: getReferenceSystems($(xml)),
             Data_Identifiers: getIdentifiers($(xml)),
             Data_Abstract: Data_Abstract,
-            Data_PointOfContacts: getContacts($(xml), 'Data_PointOfContacts'),
+            Data_PointOfContacts: Data_PointOfContacts,
             // Data_PointOfContacts: Data_PointOfContacts,
             Data_BrowseGraphics: getBrowsegraphics($(xml)),
-            Data_Dates: getDates($(xml), 'Data_Dates'),
+            Data_Dates: Data_Dates,
             // Data_MaintenanceFrequency: $(xml).find(xpaths.Data_MaintenanceFrequency).text(),
-            Data_MaintenanceFrequency: getMaintenanceFrequency($(xml)),
+            Data_MaintenanceFrequency: Data_MaintenanceFrequency,
             Data_Keywords: getKeywords($(xml)),
             Data_UseLimitations: getUseLimitations($(xml)),
             Data_AccessRestrictionCodes: getAccessRestrictionCodes($(xml)),
@@ -63,11 +81,11 @@ $( document ).ready(function() {
             Data_ScaleDenominator: $(xml).find(xpaths.Data_ScaleDenominator).text(),
             Data_ScaleDistance: $(xml).find(xpaths.Data_ScaleDistance).text(),
             //Data_Languages: getChildren(xml, 'Data_Languages'),
-            Data_Languages: getLanguages($(xml)),
-            Data_CharacterSet: MD_CharacterSetCode[$(xml).find(xpaths.Data_CharacterSet).attr('codeListValue')],
+            Data_Languages: Data_Languages,
+            Data_CharacterSet: Data_CharacterSet,
             Data_TopicCategories: getTopicCategories($(xml)),
-            Data_GeographicExtents: getExtents($(xml), 'GeographicExtents'),
-            Data_TemporalExtents: getExtents($(xml), 'TemporalExtents'),
+            Data_GeographicExtents: Data_GeographicExtents,
+            Data_TemporalExtents: Data_TemporalExtents,
             Data_DistFormats: getDistFormats($(xml)),
             Data_Linkages: getLinkages($(xml)),
             Data_DQ_Level: MD_ScopeCode[$(xml).find(xpaths.Data_DQ_Level).attr('codeListValue')],
@@ -76,27 +94,9 @@ $( document ).ready(function() {
         }
         data.md = md;
         data.lb = lb[lang];
-        //alert(JSON.stringify(data, null, 4));
-        // console.log(JSON.stringify(md['MD_Contacts'], null, 4));
-        // console.log(JSON.stringify(MD_Contacts, null, 4));
         return data;
     }
-    /*
-	function getChildren(xml, parent_path) {
-        var data = [];
-        $(xml).find(xpaths[parent_path]['root']).each(function() {
-			var child = {};
-			for (k in xpaths[parent_path]['children']) {
-				child[k] = $(this).find(xpaths[parent_path]['children'][k]).text();
-			}
-            data.push(child);
-        });
-        return data;
-    }
-	*/
 	function getFileIdentifier(xml) {
-		//MD_FileIdentifier['label_fr'] = '';
-		//MD_FileIdentifier['description'] = '';
         return $(xml).find(xpaths.MD_FileIdentifier).text();
     }
 	function getReferenceSystems(xml) {
@@ -153,33 +153,26 @@ $( document ).ready(function() {
         });
         return data;
     }
-    /*
-    function getFirstBrowsegraphics(xml) {
-        var first_bg = $(xml).find(xpaths.Data_BrowseGraphics+':first');
-        var bg = {
-            Data_BrowseGraphic_Name: first_bg.find(xpaths.Data_BrowseGraphic_Name).text(),
-            Data_BrowseGraphic_Description: first_bg.find(xpaths.Data_BrowseGraphic_Description).text(),
-            Data_BrowseGraphic_Type: first_bg.find(xpaths.Data_BrowseGraphic_Type).text()
-        }
-        return bg;
-    }
-    */
+
     function getSpatialRepresentationType(xml) {
         var Data_SpatialRepresentationType = $(xml).find(xpaths.Data_SpatialRepresentationType).attr('codeListValue');
         lb[lang]['Data_SpatialRepresentationType_description'] = MD_SpatialRepresentationTypeCode[Data_SpatialRepresentationType]['description'];
         return MD_SpatialRepresentationTypeCode[Data_SpatialRepresentationType]['name'];
     }
     
-    function getMaintenanceFrequency(xml) {
-        var Data_MaintenanceFrequency = $(xml).find(xpaths.Data_MaintenanceFrequency).attr('codeListValue');
+    function getMaintenanceFrequency(xml, xpath_maintenanceFrequency) {
+        var Data_MaintenanceFrequency = $(xml).find(xpaths[xpath_maintenanceFrequency]).attr('codeListValue');
         return MD_MaintenanceFrequencyCode[Data_MaintenanceFrequency];
+    }
+    function getCharacterSet(xml, xpath_characterSet) {
+        var Data_CharacterSet = $(xml).find(xpaths[xpath_characterSet]).attr('codeListValue');
+        return MD_CharacterSetCode[Data_CharacterSet];
     }
     function getDates(xml, xpath_dates) {
         var data = {};
         $(xml).find(xpaths[xpath_dates]).each(function() {
             var Date = $(this).find(xpaths.Date).text();
             var DateType = $(this).find(xpaths.DateType).text();
-            // console.log(DateType);
             if (DateType == 'creation') {
                 data['DateCreation'] = Date;
             } else if (DateType == 'publication') {
@@ -187,7 +180,6 @@ $( document ).ready(function() {
             } else if (DateType == 'revision') {
                 data['DateRevision'] = Date;
             }
-            // console.log(Date);
         });
         return data;
     }
@@ -218,7 +210,6 @@ $( document ).ready(function() {
         var data = [];
         $(xml).find(xpaths.Data_AccessConstraints).each(function() {
             var restriction = $(this).find(xpaths.Data_RestrictionCode).attr('codeListValue');
-            //console.log('aaa'+restriction);
             if (restriction != 'otherRestrictions') {
                 ac = {
                     Data_RestrictionCode: MD_RestrictionCode[restriction],
@@ -242,7 +233,6 @@ $( document ).ready(function() {
         var data = [];
         $(xml).find(xpaths.Data_UseConstraints).each(function() {
             var restriction = $(this).find(xpaths.Data_RestrictionCode).attr('codeListValue');
-            //console.log('aaa'+restriction);
             if (restriction != 'otherRestrictions') {
                 ac = {
                     Data_RestrictionCode: MD_RestrictionCode[restriction],
@@ -253,9 +243,9 @@ $( document ).ready(function() {
         return data;
     }
     
-    function getLanguages(xml) {
+    function getLanguages(xml, xpath_languages) {
         var data = [];
-        $(xml).find(xpaths.Data_Languages).each(function() {
+        $(xml).find(xpaths[xpath_languages]).each(function() {
             lg = {
                 Data_Language: MD_LanguageCode[$(this).find(xpaths.Data_Language).attr('codeListValue')]
             }
@@ -263,10 +253,10 @@ $( document ).ready(function() {
         });
         return data;
     }
-    function getExtents(xml, extentType) {
+    function getExtents(xml, extentType, xpath_extents) {
         var data_geo = [];
         var data_temp = []
-        $(xml).find(xpaths.Data_Extents).each(function() {
+        $(xml).find(xpaths[xpath_extents]).each(function() {
             Data_ExtentName = $(this).find(xpaths.Data_ExtentName).text();
             Data_ExtentNorthbound = $(this).find(xpaths.Data_ExtentNorthbound).text();
             Data_ExtentSouthbound = $(this).find(xpaths.Data_ExtentSouthbound).text();
@@ -380,5 +370,4 @@ $( document ).ready(function() {
         });
     }
     loadContent();
-
 });
