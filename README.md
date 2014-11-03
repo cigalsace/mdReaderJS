@@ -1,7 +1,7 @@
 # mdReaderJS
 
 Application javascript de lecture d'une fiche de métadonnées conforme ISO-19139/INSPIRE.
-Cette application constitue l'un des modules du projet mdViewer
+Cette application constitue l'un des modules du projet mdViewer.
 
 *La branche "master" est la branche de développement.*
 
@@ -12,9 +12,9 @@ Il n'a pas pour objectif de remplacer des solutions complètes tel que [GéoSour
 
 L'application se compose de 3 modules indépendants:
 
-  - [cswReaderJS][3] : permet de lire un flux afficher la liste des fiches de métadonnées de façon synthétique.
-  - [mdReaderJS][4] : permet de lire une fiche de métadonnées et l'afficher de façon complète selon le profil CIGAL.
-  - [xml2csw][5] : permet de simuler un serveur csw minimaliste à partir d'une liste de fichiers XML pour pouvoir les consulter via cswReaderJS et mdReaderJS.
+* [cswReaderJS][3] : permet de lire un flux afficher la liste des fiches de métadonnées de façon synthétique.
+* [mdReaderJS][4] : permet de lire une fiche de métadonnées et l'afficher de façon complète selon le profil CIGAL.
+* [xml2csw][5] : permet de simuler un serveur csw minimaliste à partir d'une liste de fichiers XML pour pouvoir les consulter via cswReaderJS et mdReaderJS.
 
 Cette application s'inspire des travaux réalisé pour le sviewer développé par [Géobretagne][6].
 
@@ -58,4 +58,3 @@ http://www.cigalsace.net/mdReaderJS/0.01/index.html?url=http://www.cigalsace.org
 [7]: http://jquery.com/
 [8]: http://mustache.github.io/
 [9]: http://getuikit.com/
-  
