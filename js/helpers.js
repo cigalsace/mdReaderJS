@@ -9,7 +9,7 @@ function urlConstruct(config) {
 	} else {
 		var url = csw_url+'?';
 	}
-    for (item in config) {
+    for (var item in config) {
         if (item != 'url' && config[item] != '') {
             url += item + '=' + config[item] + '&';
         }

@@ -87,8 +87,9 @@ var xpaths = {
     Data_ExtentEastbound: 'gmd\\:geographicElement>gmd\\:EX_GeographicBoundingBox>gmd\\:eastBoundLongitude>gco\\:Decimal, geographicElement EX_GeographicBoundingBox eastBoundLongitude Decimal',
     Data_ExtentWestbound: 'gmd\\:geographicElement>gmd\\:EX_GeographicBoundingBox>gmd\\:westBoundLongitude>gco\\:Decimal, geographicElement EX_GeographicBoundingBox westBoundLongitude Decimal',
     // TemporalExtents
-    Data_TemporalExtent_Begin: 'gmd\\:temporalElement>gmd\\:EX_TemporalExtent>gmd\\:extent gml\\:TimePeriod gml\\:beginPosition, temporalElement EX_TemporalExtent extent TimePeriod beginPosition',
-    Data_TemporalExtent_End: 'gmd\\:temporalElement>gmd\\:EX_TemporalExtent>gmd\\:extent gml\\:TimePeriod gml\\:endPosition, temporalElement EX_TemporalExtent extent TimePeriod endPosition',
+    Data_TemporalExtent_Begin: 'gmd\\:temporalElement>gmd\\:EX_TemporalExtent>gmd\\:extent>gml\\:TimePeriod>gml\\:beginPosition, temporalElement EX_TemporalExtent extent TimePeriod beginPosition',
+    Data_TemporalExtent_End: 'gmd\\:temporalElement>gmd\\:EX_TemporalExtent>gmd\\:extent>gml\\:TimePeriod>gml\\:endPosition, temporalElement EX_TemporalExtent extent TimePeriod endPosition',
+    
     // VerticalExtents
     //'Data_VerticalExtents': '',
     //'Data_VerticalExtent_Max': '',
@@ -103,9 +104,10 @@ var xpaths = {
     Data_DistFormatSpecification: 'gmd\\:specification>gco\\:CharacterString, specification>CharacterString',
     // Linkages
     Data_Linkages: 'gmd\\:MD_Metadata>gmd\\:distributionInfo>gmd\\:MD_Distribution>gmd\\:transferOptions>gmd\\:MD_DigitalTransferOptions>gmd\\:onLine>gmd\\:CI_OnlineResource, MD_Metadata>distributionInfo>MD_Distribution>transferOptions>MD_DigitalTransferOptions>onLine>CI_OnlineResource',
-    Data_LinkageName: 'gmd\\:name>gco\\:CharacterString, name>CharacterString',
+    Data_LinkageName: 'gmd\\:name>gco\\:CharacterString, name>CharacterString, gmd\\:name>gmx\\:MimeFileType, name>MimeFileType',
     Data_LinkageDescription: 'gmd\\:description>gco\\:CharacterString, description>CharacterString',
     Data_LinkageURL: 'gmd\\:linkage>gmd\\:URL, linkage>URL',
+    Data_LinkageProtocol: 'gmd\\:protocol>gco\\:CharacterString, protocol>CharacterString',
     Data_MaintenanceFrequency: 'gmd\\:MD_Metadata>gmd\\:identificationInfo>gmd\\:MD_DataIdentification>gmd\\:resourceMaintenance>gmd\\:MD_MaintenanceInformation>gmd\\:maintenanceAndUpdateFrequency>gmd\\:MD_MaintenanceFrequencyCode, MD_Metadata>identificationInfo>MD_DataIdentification>resourceMaintenance>MD_MaintenanceInformation>maintenanceAndUpdateFrequency>MD_MaintenanceFrequencyCode',
     Service_MaintenanceFrequency: 'gmd\\:MD_Metadata>gmd\\:identificationInfo>srv\\:SV_ServiceIdentification>gmd\\:resourceMaintenance>gmd\\:MD_MaintenanceInformation>gmd\\:maintenanceAndUpdateFrequency>gmd\\:MD_MaintenanceFrequencyCode, MD_Metadata>identificationInfo>SV_ServiceIdentification>resourceMaintenance>MD_MaintenanceInformation>maintenanceAndUpdateFrequency>MD_MaintenanceFrequencyCode',
     Data_DQ_Level: 'gmd\\:MD_Metadata>gmd\\:dataQualityInfo>gmd\\:DQ_DataQuality>gmd\\:scope>gmd\\:DQ_Scope>gmd\\:level>gmd\\:MD_ScopeCode, MD_Metadata>dataQualityInfo>DQ_DataQualityscope>DQ_Scope>level>MD_ScopeCode',
@@ -129,7 +131,7 @@ var xpaths = {
     CntCity: 'gmd\\:contactInfo>gmd\\:CI_Contact>gmd\\:address>gmd\\:CI_Address>gmd\\:city>gco\\:CharacterString, contactInfo CI_Contact>address>CI_Address>city>CharacterString',
     CntPhone: 'gmd\\:contactInfo>gmd\\:CI_Contact>gmd\\:phone>gmd\\:CI_Telephone>gmd\\:voice>gco\\:CharacterString, contactInfo>CI_Contact>phone>CI_Telephone>voice>CharacterString',
     CntEmail: 'gmd\\:contactInfo>gmd\\:CI_Contact>gmd\\:address>gmd\\:CI_Address>gmd\\:electronicMailAddress>gco\\:CharacterString, contactInfo>CI_Contact>address>CI_Address>electronicMailAddress>CharacterString',
-    CntLogo: 'gmd\\:contactInfo>gmd\\:CI_Contact>gmd\\:contactInstructions>gmx\\:FileName',
+    CntLogo: 'gmd\\:contactInfo>gmd\\:CI_Contact>gmd\\:contactInstructions>gmx\\:FileName, contactInfo>CI_Contact>contactInstructions>FileName',
     CntRole: 'gmd\\:role>gmd\\:CI_RoleCode, role>CI_RoleCode'
 };
     

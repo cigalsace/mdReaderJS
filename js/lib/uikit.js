@@ -1,5 +1,4 @@
-/*! UIkit 2.8.0 | http://www.getuikit.com | (c) 2014 YOOtheme | MIT License */
-
+/*! UIkit 2.14.0 | http://www.getuikit.com | (c) 2014 YOOtheme | MIT License */
 (function(core) {
 
     if (typeof define == "function" && define.amd) { // AMD
@@ -12,12 +11,12 @@
                 var resources = res.split(','), load = [], i, base = (config.config && config.config.uikit && config.config.uikit.base ? config.config.uikit.base : "").replace(/\/+$/g, "");
 
                 if (!base) {
-                    throw new Error( "Please define base path to uikit in the requirejs config." );
+                    throw new Error( "Please define base path to UIkit in the requirejs config." );
                 }
 
                 for (i = 0; i < resources.length; i += 1) {
                     var resource = resources[i].replace(/\./g, '/');
-                    load.push(base+'/js/addons/'+resource);
+                    load.push(base+'/components/'+resource);
                 }
 
                 req(load, function() {
@@ -42,15 +41,71 @@
 
     "use strict";
 
-    var UI = $.UIkit || {}, $html = $("html"), $win = $(window), $doc = $(document);
+    var UI = {}, _UI = window.UIkit;
 
-    if (UI.fn) {
+    UI.version = '2.14.0';
+    UI._prefix = 'uk';
+
+    UI.noConflict = function(prefix) {
+        // resore UIkit version
+        if (_UI) {
+            window.UIkit = _UI;
+            $.UIkit      = _UI;
+            $.fn.uk      = _UI.fn;
+        }
+        if (prefix) {} UI._prefix = prefix;
         return UI;
-    }
+    };
 
-    UI.version = '2.8.0';
-    UI.$doc    = $doc;
-    UI.$win    = $win;
+    UI.prefix = function(str) {
+        return typeof(str)=='string' ? str.replace(/@/g, UI._prefix) : str;
+    };
+
+    // wrap jQuery to auto prefix string arguments
+    UI.$ = function() {
+
+        if (arguments[0] && typeof(arguments[0])=='string') {
+            arguments[0] = UI.prefix(arguments[0]);
+        }
+
+        var obj = $.apply($, arguments), i;
+
+        if (!obj.length) {
+            return obj;
+        }
+
+        [
+            'find', 'filter', 'closest',
+            'attr', 'parent', 'parents', 'children',
+            'addClass', 'removeClass', 'toggleClass', 'hasClass',
+            'is',
+            'on', 'one'
+        ].forEach(function(m){
+
+            var method = obj[m], result, collections = ['find','filter','parent', 'parents', 'children', 'closest'];
+
+            obj[m] = function() {
+
+                for (i=0;i<arguments.length;i++) {
+
+                    if (typeof(arguments[i])=='string') {
+                        arguments[i] = UI.prefix(arguments[i]);
+                    }
+                }
+
+                result = method.apply(this, arguments);
+
+                return (collections.indexOf(m) > -1) ? UI.$(result) : result;
+            };
+            return obj;
+        });
+
+        return obj;
+    };
+
+    UI.$doc  = UI.$(document);
+    UI.$win  = UI.$(window);
+    UI.$html = UI.$('html');
 
     UI.fn = function(command, options) {
 
@@ -68,7 +123,6 @@
         });
     };
 
-
     UI.support = {};
     UI.support.transition = (function() {
 
@@ -76,10 +130,10 @@
 
             var element = doc.body || doc.documentElement,
                 transEndEventNames = {
-                    WebkitTransition: 'webkitTransitionEnd',
-                    MozTransition: 'transitionend',
-                    OTransition: 'oTransitionEnd otransitionend',
-                    transition: 'transitionend'
+                    WebkitTransition : 'webkitTransitionEnd',
+                    MozTransition    : 'transitionend',
+                    OTransition      : 'oTransitionEnd otransitionend',
+                    transition       : 'transitionend'
                 }, name;
 
             for (name in transEndEventNames) {
@@ -96,10 +150,10 @@
 
             var element = doc.body || doc.documentElement,
                 animEndEventNames = {
-                    WebkitAnimation: 'webkitAnimationEnd',
-                    MozAnimation: 'animationend',
-                    OAnimation: 'oAnimationEnd oanimationend',
-                    animation: 'animationend'
+                    WebkitAnimation : 'webkitAnimationEnd',
+                    MozAnimation    : 'animationend',
+                    OAnimation      : 'oAnimationEnd oanimationend',
+                    animation       : 'animationend'
                 }, name;
 
             for (name in animEndEventNames) {
@@ -114,13 +168,27 @@
     UI.support.touch                 = (
         ('ontouchstart' in window && navigator.userAgent.toLowerCase().match(/mobile|tablet/)) ||
         (global.DocumentTouch && document instanceof global.DocumentTouch)  ||
-        (global.navigator['msPointerEnabled'] && global.navigator['msMaxTouchPoints'] > 0) || //IE 10
-        (global.navigator['pointerEnabled'] && global.navigator['maxTouchPoints'] > 0) || //IE >=11
+        (global.navigator.msPointerEnabled && global.navigator.msMaxTouchPoints > 0) || //IE 10
+        (global.navigator.pointerEnabled && global.navigator.maxTouchPoints > 0) || //IE >=11
         false
     );
-    UI.support.mutationobserver      = (global.MutationObserver || global.WebKitMutationObserver || global.MozMutationObserver || null);
+    UI.support.mutationobserver = (global.MutationObserver || global.WebKitMutationObserver || null);
 
     UI.Utils = {};
+
+    UI.Utils.str2json = function(str) {
+        return str
+        // wrap keys without quote with valid double quote
+        .replace(/([\$\w]+)\s*:/g, function(_, $1){return '"'+$1+'":';})
+        // replacing single quote wrapped ones to double quote
+        .replace(/'([^']+)'/g, function(_, $1){return '"'+$1+'"';});
+
+        /* old method:
+            try {
+                return (new Function("", "var json = " + str + "; return JSON.parse(JSON.stringify(json));"))();
+            } catch(e) { return false; }
+        */
+    };
 
     UI.Utils.debounce = function(func, wait, immediate) {
         var timeout;
@@ -170,16 +238,48 @@
             return false;
         }
 
-        var window_left = $win.scrollLeft(), window_top = $win.scrollTop(), offset = $element.offset(), left = offset.left, top = offset.top;
+        var window_left = UI.$win.scrollLeft(), window_top = UI.$win.scrollTop(), offset = $element.offset(), left = offset.left, top = offset.top;
 
         options = $.extend({topoffset:0, leftoffset:0}, options);
 
-        if (top + $element.height() >= window_top && top - options.topoffset <= window_top + $win.height() &&
-            left + $element.width() >= window_left && left - options.leftoffset <= window_left + $win.width()) {
+        if (top + $element.height() >= window_top && top - options.topoffset <= window_top + UI.$win.height() &&
+            left + $element.width() >= window_left && left - options.leftoffset <= window_left + UI.$win.width()) {
           return true;
         } else {
           return false;
         }
+    };
+
+    UI.Utils.checkDisplay = function(context, initanimation) {
+
+        var elements = UI.$('[data-@-margin], [data-@-grid-match], [data-@-grid-margin], [data-@-check-display]', context || document), animated;
+
+        if (context && !elements.length) {
+            elements = $(context);
+        }
+
+        elements.trigger('display.uk.check');
+
+        // fix firefox / IE animations
+        if (initanimation) {
+
+            if (typeof(initanimation)!='string') {
+                initanimation = UI.prefix('[class*="@-animation-"]');
+            }
+
+            elements.find(initanimation).each(function(){
+
+                var ele  = UI.$(this),
+                    cls  = ele.attr('class'),
+                    anim = cls.match(/uk\-animation\-(.+)/);
+
+                ele.removeClass(anim[0]).width();
+
+                ele.addClass(anim[0]);
+            });
+        }
+
+        return elements;
     };
 
     UI.Utils.options = function(string) {
@@ -190,11 +290,32 @@
 
         if (start != -1) {
             try {
-                options = (new Function("", "var json = " + string.substr(start) + "; return JSON.parse(JSON.stringify(json));"))();
+                options = JSON.parse(UI.Utils.str2json(string.substr(start)));
             } catch (e) {}
         }
 
         return options;
+    };
+
+    UI.Utils.animate = function(element, cls) {
+
+        var d = $.Deferred();
+
+        element = UI.$(element);
+        cls     = UI.prefix(cls);
+
+        element.css('display', 'none').addClass(cls).one(UI.support.animation.end, function() {
+            element.removeClass(cls);
+            d.resolve();
+        }).width();
+
+        element.css('display', '');
+
+        return d.promise();
+    };
+
+    UI.Utils.uid = function(prefix) {
+        return (prefix || 'id') + (new Date().getTime())+"RAND"+(Math.ceil(Math.random() * 100000));
     };
 
     UI.Utils.template = function(str, data) {
@@ -246,246 +367,26 @@
             i = i + 1;
         }
 
-        fn  = [
+        fn  = new Function('$data', [
             'var __ret = [];',
             'try {',
             'with($data){', (!openblocks ? output.join('') : '__ret = ["Not all blocks are closed correctly."]'), '};',
             '}catch(e){__ret = [e.message];}',
             'return __ret.join("").replace(/\\n\\n/g, "\\n");',
             "function escape(html) { return String(html).replace(/&/g, '&amp;').replace(/\"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');}"
-        ].join("\n");
+        ].join("\n"));
 
-        var func = new Function('$data', fn);
-        return data ? func(data) : func;
+        return data ? fn(data) : fn;
     };
 
     UI.Utils.events       = {};
     UI.Utils.events.click = UI.support.touch ? 'tap' : 'click';
 
-    $.UIkit = UI;
-    $.fn.uk = UI.fn;
+    window.UIkit = UI;
+    $.UIkit      = UI;
+    $.fn.uk      = UI.fn;
 
-    $.UIkit.langdirection = $html.attr("dir") == "rtl" ? "right" : "left";
-
-    $(function(){
-
-        $doc.trigger("uk-domready");
-
-        // custom scroll observer
-        setInterval((function(){
-
-            var memory = {x: window.scrollX, y:window.scrollY};
-
-            var fn = function(){
-
-                if (memory.x != window.scrollX || memory.y != window.scrollY) {
-                    memory = {x: window.scrollX, y:window.scrollY};
-                    $doc.trigger('uk-scroll', [memory]);
-                }
-            };
-
-            if ($.UIkit.support.touch) {
-                $doc.on('touchmove touchend MSPointerMove MSPointerUp', fn);
-            }
-
-            if(memory.x || memory.y) fn();
-
-            return fn;
-
-        })(), 15);
-
-
-        // Check for dom modifications
-        if(!UI.support.mutationobserver) return;
-
-        try{
-
-            var observer = new UI.support.mutationobserver(UI.Utils.debounce(function(mutations) {
-                $doc.trigger("uk-domready");
-            }, 150));
-
-            // pass in the target node, as well as the observer options
-            observer.observe(document.body, { childList: true, subtree: true });
-
-        } catch(e) {}
-
-        // remove css hover rules for touch devices
-        if (UI.support.touch) {
-            UI.Utils.removeCssRules(/\.uk-(?!navbar).*:hover/);
-        }
-    });
-
-    // add touch identifier class
-    $html.addClass(UI.support.touch ? "uk-touch" : "uk-notouch");
-
-    // add uk-hover class on tap to support overlays on touch devices
-    if (UI.support.touch) {
-
-        var hoverset = false, selector = '.uk-overlay, .uk-overlay-toggle, .uk-has-hover', exclude;
-
-        $doc.on('touchstart MSPointerDown', selector, function() {
-
-            if(hoverset) $('.uk-hover').removeClass('uk-hover');
-
-            hoverset = $(this).addClass('uk-hover');
-
-        }).on('touchend MSPointerUp', function(e) {
-
-            exclude = $(e.target).parents(selector);
-
-            if (hoverset) hoverset.not(exclude).removeClass('uk-hover');
-        });
-    }
-
-    return UI;
-});
-
-/**
- * Promises/A+ spec. polyfill
- * promiscuous - https://github.com/RubenVerborgh/promiscuous
- * @license MIT
- * Ruben Verborgh
- */
-
-(function(global){
-
-    global.Promise = global.Promise || (function (func, obj) {
-
-        // Type checking utility function
-        function is(type, item) { return (typeof item)[0] == type; }
-
-        // Creates a promise, calling callback(resolve, reject), ignoring other parameters.
-        function Promise(callback, handler) {
-            // The `handler` variable points to the function that will
-            // 1) handle a .then(resolved, rejected) call
-            // 2) handle a resolve or reject call (if the first argument === `is`)
-            // Before 2), `handler` holds a queue of callbacks.
-            // After 2), `handler` is a finalized .then handler.
-            handler = function pendingHandler(resolved, rejected, value, queue, then, i) {
-                queue = pendingHandler.q;
-
-                // Case 1) handle a .then(resolved, rejected) call
-                if (resolved != is) {
-                    return Promise(function (resolve, reject) {
-                        queue.push({ p: this, r: resolve, j: reject, 1: resolved, 0: rejected });
-                    });
-                }
-
-                // Case 2) handle a resolve or reject call
-                // (`resolved` === `is` acts as a sentinel)
-                // The actual function signature is
-                // .re[ject|solve](<is>, success, value)
-
-                // Check if the value is a promise and try to obtain its `then` method
-                if (value && (is(func, value) | is(obj, value))) {
-                    try { then = value.then; }
-                    catch (reason) { rejected = 0; value = reason; }
-                }
-                // If the value is a promise, take over its state
-                if (is(func, then)) {
-                    var valueHandler = function (resolved) {
-                        return function (value) { return then && (then = 0, pendingHandler(is, resolved, value)); };
-                    };
-                    try { then.call(value, valueHandler(1), rejected = valueHandler(0)); }
-                    catch (reason) { rejected(reason); }
-                }
-                // The value is not a promise; handle resolve/reject
-                else {
-                    // Replace this handler with a finalized resolved/rejected handler
-                    handler = function (Resolved, Rejected) {
-                        // If the Resolved or Rejected parameter is not a function,
-                        // return the original promise (now stored in the `callback` variable)
-                        if (!is(func, (Resolved = rejected ? Resolved : Rejected))) return callback;
-                        // Otherwise, return a finalized promise, transforming the value with the function
-                        return Promise(function (resolve, reject) { finalize(this, resolve, reject, value, Resolved); });
-                    };
-                    // Resolve/reject pending callbacks
-                    i = 0;
-                    while (i < queue.length) {
-                        then = queue[i++];
-                        // If no callback, just resolve/reject the promise
-                        if (!is(func, resolved = then[rejected])) {
-                            (rejected ? then.r : then.j)(value);
-                        // Otherwise, resolve/reject the promise with the result of the callback
-                        } else {
-                            finalize(then.p, then.r, then.j, value, resolved);
-                        }
-                    }
-                }
-            };
-
-            // The queue of pending callbacks; garbage-collected when handler is resolved/rejected
-            handler.q = [];
-
-            // Create and return the promise (reusing the callback variable)
-            callback.call(callback = {
-                    then:  function (resolved, rejected) { return handler(resolved, rejected); },
-                    catch: function (rejected)           { return handler(0,        rejected); }
-                },
-                function (value)  { handler(is, 1,  value); },
-                function (reason) { handler(is, 0, reason); }
-            );
-
-            return callback;
-        }
-
-        // Finalizes the promise by resolving/rejecting it with the transformed value
-        function finalize(promise, resolve, reject, value, transform) {
-            setTimeout(function () {
-                try {
-                    // Transform the value through and check whether it's a promise
-                    value = transform(value);
-                    transform = value && (is(obj, value) | is(func, value)) && value.then;
-                    // Return the result if it's not a promise
-                    if (!is(func, transform))
-                        resolve(value);
-                    // If it's a promise, make sure it's not circular
-                    else if (value == promise)
-                        reject(TypeError());
-                    // Take over the promise's state
-                    else
-                        transform.call(value, resolve, reject);
-                }
-                catch (error) { reject(error); }
-            }, 0);
-        }
-
-        // Creates a resolved promise
-        Promise.resolve = ResolvedPromise;
-        function ResolvedPromise(value) { return Promise(function (resolve) { resolve(value); }); }
-
-        // Creates a rejected promise
-        Promise.reject = function (reason) { return Promise(function (resolve, reject) { reject(reason); }); };
-
-        // Transforms an array of promises into a promise for an array
-        Promise.all = function (promises) {
-            return Promise(function (resolve, reject, count, values) {
-                // Array of collected values
-                values = [];
-                // Resolve immediately if there are no promises
-                count = promises.length || resolve(values);
-                // Transform all elements (`map` is shorter than `forEach`)
-                promises.map(function (promise, index) {
-                    ResolvedPromise(promise).then(
-                    // Store the value and resolve if it was the last
-                    function (value) {
-                        values[index] = value;
-                        count = count -1;
-                        if(!count) resolve(values);
-                    },
-                    // Reject if one element fails
-                    reject);
-                });
-            });
-        };
-
-        return Promise;
-    })('f', 'o');
-})(this);
-
-(function($, UI) {
-
-    "use strict";
+    UI.langdirection = UI.$html.attr("dir") == "rtl" ? "right" : "left";
 
     UI.components = {};
 
@@ -495,7 +396,8 @@
 
             var $this = this;
 
-            this.element = element ? $(element) : null;
+            this.UIkit   = UI;
+            this.element = element ? UI.$(element) : null;
             this.options = $.extend(true, {}, this.defaults, options);
             this.plugins = {};
 
@@ -514,7 +416,9 @@
 
             });
 
-            this.trigger('init', [this]);
+            this.trigger('init.uk.component', [name, this]);
+
+            return this;
         };
 
         fn.plugins = {};
@@ -523,26 +427,27 @@
 
             defaults : {plugins: []},
 
+            boot: function(){},
             init: function(){},
 
-            on: function(){
-                return $(this.element || this).on.apply(this.element || this, arguments);
+            on: function(a1,a2,a3){
+                return UI.$(this.element || this).on(a1,a2,a3);
             },
 
-            one: function(){
-                return $(this.element || this).one.apply(this.element || this, arguments);
+            one: function(a1,a2,a3){
+                return UI.$(this.element || this).one(a1,a2,a3);
             },
 
             off: function(evt){
-                return $(this.element || this).off(evt);
+                return UI.$(this.element || this).off(evt);
             },
 
             trigger: function(evt, params) {
-                return $(this.element || this).trigger(evt, params);
+                return UI.$(this.element || this).trigger(evt, params);
             },
 
             find: function(selector) {
-                return this.element ? this.element.find(selector) : $([]);
+                return UI.$(this.element ? this.element: []).find(selector);
             },
 
             proxy: function(obj, methods) {
@@ -561,7 +466,7 @@
                 methods.split(' ').forEach(function(method) {
                     if (!$this[method]) $this[method] = obj[method].bind($this);
                 });
-            },
+            }
 
         }, def);
 
@@ -571,7 +476,8 @@
 
             var element, options;
 
-            if(arguments.length) {
+            if (arguments.length) {
+
                 switch(arguments.length) {
                     case 1:
 
@@ -597,6 +503,10 @@
             return (new UI.components[name](element, options));
         };
 
+        if (UI.domready) {
+            UI.component.boot(name);
+        }
+
         return fn;
     };
 
@@ -604,116 +514,223 @@
         this.components[component].plugins[name] = def;
     };
 
-})(jQuery, jQuery.UIkit);
+    UI.component.boot = function(name) {
 
-(function($, UI) {
-
-    "use strict";
-
-    var win = $(window), event = 'resize orientationchange', stacks = [];
-
-    UI.component('stackMargin', {
-
-        defaults: {
-            'cls': 'uk-margin-small-top'
-        },
-
-        init: function() {
-
-            var $this = this;
-
-            this.columns = this.element.children();
-
-            if (!this.columns.length) return;
-
-            win.on(event, (function() {
-                var fn = function() {
-                    $this.process();
-                };
-
-                $(function() {
-                    fn();
-                    win.on("load", fn);
-                });
-
-                return UI.Utils.debounce(fn, 150);
-            })());
-
-            $(document).on("uk-domready", function(e) {
-                $this.columns  = $this.element.children();
-                $this.process();
-            });
-
-            stacks.push(this);
-        },
-
-        process: function() {
-
-            var $this = this;
-
-            this.revert();
-
-            var skip         = false,
-                firstvisible = this.columns.filter(":visible:first"),
-                offset       = firstvisible.length ? firstvisible.offset().top : false;
-
-            if (offset === false) return;
-
-            this.columns.each(function() {
-
-                var column = $(this);
-
-                if (column.is(":visible")) {
-
-                    if (skip) {
-                        column.addClass($this.options.cls);
-                    } else {
-                        if (column.offset().top != offset) {
-                            column.addClass($this.options.cls);
-                            skip = true;
-                        }
-                    }
-                }
-            });
-
-            return this;
-        },
-
-        revert: function() {
-            this.columns.removeClass(this.options.cls);
-            return this;
+        if (UI.components[name].prototype && UI.components[name].prototype.boot && !UI.components[name].booted) {
+            UI.components[name].prototype.boot.apply(UI, []);
+            UI.components[name].booted = true;
         }
-    });
+    };
 
-    // init code
-    $(document).on("uk-domready", function(e) {
-        $("[data-uk-margin]").each(function() {
-            var ele = $(this), obj;
+    UI.component.bootComponents = function() {
 
-            if (!ele.data("stackMargin")) {
-                obj = UI.stackMargin(ele, UI.Utils.options(ele.attr("data-uk-margin")));
+        for (var component in UI.components) {
+            UI.component.boot(component);
+        }
+    };
+
+
+    // DOM mutation save ready helper function
+
+    UI.domObservers = [];
+    UI.domready     = false;
+
+    UI.ready = function(fn) {
+
+        UI.domObservers.push(fn);
+
+        if (UI.domready) {
+            fn(document);
+        }
+    };
+
+    UI.on = function(a1,a2,a3){
+
+        if (a1 && a1.indexOf('ready.uk.dom') > -1 && UI.domready) {
+            a2.apply(UI.$doc);
+        }
+
+        return UI.$doc.on(a1,a2,a3);
+    };
+
+    UI.one = function(a1,a2,a3){
+
+        if (a1 && a1.indexOf('ready.uk.dom') > -1 && UI.domready) {
+            a2.apply(UI.$doc);
+            return UI.$doc;
+        }
+
+        return UI.$doc.one(a1,a2,a3);
+    };
+
+    UI.trigger = function(evt, params) {
+        return UI.$doc.trigger(evt, params);
+    };
+
+    UI.domObserve = function(selector, fn) {
+
+        if(!UI.support.mutationobserver) return;
+
+        fn = fn || function() {};
+
+        UI.$(selector).each(function() {
+
+            var element  = this,
+                $element = UI.$(element);
+
+            if ($element.data('observer')) {
+                return;
             }
+
+            try {
+
+                var observer = new UI.support.mutationobserver(UI.Utils.debounce(function(mutations) {
+                    fn.apply(element, []);
+                    $element.trigger('changed.uk.dom');
+                }, 50));
+
+                // pass in the target node, as well as the observer options
+                observer.observe(element, { childList: true, subtree: true });
+
+                $element.data('observer', observer);
+
+            } catch(e) {}
         });
+    };
+
+
+    $(function(){
+
+        UI.$body = UI.$('body');
+
+        UI.ready(function(context){
+            UI.domObserve('[data-@-observe]');
+        });
+
+        UI.on('ready.uk.dom', function(){
+
+            UI.domObservers.forEach(function(fn){
+                fn(document);
+            });
+
+            if (UI.domready) UI.Utils.checkDisplay(document);
+        });
+
+
+        UI.on('changed.uk.dom', function(e) {
+
+            var ele = e.target;
+
+            UI.domObservers.forEach(function(fn){
+                fn(ele);
+            });
+
+            UI.Utils.checkDisplay(ele);
+        });
+
+        UI.trigger('beforeready.uk.dom');
+
+        UI.component.bootComponents();
+
+        // custom scroll observer
+        setInterval((function(){
+
+            var memory = {x: window.pageXOffset, y:window.pageYOffset}, dir;
+
+            var fn = function(){
+
+                if (memory.x != window.pageXOffset || memory.y != window.pageYOffset) {
+
+                    dir = {x: 0 , y: 0};
+
+                    if (window.pageXOffset != memory.x) dir.x = window.pageXOffset > memory.x ? 1:-1;
+                    if (window.pageYOffset != memory.y) dir.y = window.pageYOffset > memory.y ? 1:-1;
+
+                    memory = {
+                        "dir": dir, "x": window.pageXOffset, "y": window.pageYOffset
+                    };
+
+                    UI.$doc.trigger('scrolling.uk.document', [memory]);
+                }
+            };
+
+            if (UI.support.touch) {
+                UI.$html.on('touchmove touchend MSPointerMove MSPointerUp pointermove pointerup', fn);
+            }
+
+            if (memory.x || memory.y) fn();
+
+            return fn;
+
+        })(), 15);
+
+        // run component init functions on dom
+        UI.trigger('ready.uk.dom');
+
+        if (UI.support.touch) {
+
+            // remove css hover rules for touch devices
+            // UI.Utils.removeCssRules(/\.uk-(?!navbar).*:hover/);
+
+            // viewport unit fix for uk-height-viewport - should be fixed in iOS 8
+            if (navigator.userAgent.match(/(iPad|iPhone|iPod)/g)) {
+
+                UI.$win.on('load orientationchange resize', UI.Utils.debounce((function(){
+
+                    var fn = function() {
+                        $(UI.prefix('.@-height-viewport')).css('height', window.innerHeight);
+                        return fn;
+                    };
+
+                    return fn();
+
+                })(), 100));
+            }
+        }
+
+        UI.trigger('afterready.uk.dom');
+
+        // mark that domready is left behind
+        UI.domready = true;
     });
 
+    // add touch identifier class
+    UI.$html.addClass(UI.support.touch ? "@-touch" : "@-notouch");
 
-    $(document).on("uk-check-display", function(e) {
-        stacks.forEach(function(item) {
-            if(item.element.is(":visible")) item.process();
+    // add uk-hover class on tap to support overlays on touch devices
+    if (UI.support.touch) {
+
+        var hoverset = false, exclude, selector = '.@-overlay, .@-overlay-toggle, .@-caption-toggle, .@-animation-hover, .@-has-hover';
+
+        UI.$html.on('touchstart MSPointerDown pointerdown', selector, function() {
+
+            if (hoverset) UI.$('.@-hover').removeClass('@-hover');
+
+            hoverset = UI.$(this).addClass('@-hover');
+
+        }).on('touchend MSPointerUp pointerup', function(e) {
+
+            exclude = UI.$(e.target).parents(selector);
+
+            if (hoverset) hoverset.not(exclude).removeClass('@-hover');
         });
-    });
+    }
 
-})(jQuery, jQuery.UIkit);
+    return UI;
+});
 
 //  Based on Zeptos touch.js
 //  https://raw.github.com/madrobby/zepto/master/src/touch.js
 //  Zepto.js may be freely distributed under the MIT license.
 
 ;(function($){
-  var touch = {},
-    touchTimeout, tapTimeout, swipeTimeout, longTapTimeout,
-    longTapDelay = 750,
-    gesture;
+
+  if ($.fn.swipeLeft) {
+    return;
+  }
+
+
+  var touch = {}, touchTimeout, tapTimeout, swipeTimeout, longTapTimeout, longTapDelay = 750, gesture;
 
   function swipeDirection(x1, x2, y1, y2) {
     return Math.abs(x1 - x2) >= Math.abs(y1 - y2) ? (x1 - x2 > 0 ? 'Left' : 'Right') : (y1 - y2 > 0 ? 'Up' : 'Down');
@@ -754,7 +771,8 @@
     }
 
     $(document)
-      .bind('MSGestureEnd', function(e){
+      .on('MSGestureEnd gestureend', function(e){
+
         var swipeDirectionFromVelocity = e.originalEvent.velocityX > 1 ? 'Right' : e.originalEvent.velocityX < -1 ? 'Left' : e.originalEvent.velocityY > 1 ? 'Down' : e.originalEvent.velocityY < -1 ? 'Up' : null;
 
         if (swipeDirectionFromVelocity) {
@@ -762,11 +780,13 @@
           touch.el.trigger('swipe'+ swipeDirectionFromVelocity);
         }
       })
-      .on('touchstart MSPointerDown', function(e){
+      // MSPointerDown: for IE10
+      // pointerdown: for IE11
+      .on('touchstart MSPointerDown pointerdown', function(e){
 
         if(e.type == 'MSPointerDown' && !isPrimaryTouch(e.originalEvent)) return;
 
-        firstTouch = e.type == 'MSPointerDown' ? e : e.originalEvent.touches[0];
+        firstTouch = (e.type == 'MSPointerDown' || e.type == 'pointerdown') ? e : e.originalEvent.touches[0];
 
         now      = Date.now();
         delta    = now - (touch.last || now);
@@ -783,13 +803,18 @@
         longTapTimeout = setTimeout(longTap, longTapDelay);
 
         // adds the current touch contact for IE gesture recognition
-        if (gesture && e.type == 'MSPointerDown') gesture.addPointer(e.originalEvent.pointerId);
+        if (gesture && ( e.type == 'MSPointerDown' || e.type == 'pointerdown' || e.type == 'touchstart' ) ) {
+          gesture.addPointer(e.originalEvent.pointerId);
+        }
+
       })
-      .on('touchmove MSPointerMove', function(e){
+      // MSPointerMove: for IE10
+      // pointermove: for IE11
+      .on('touchmove MSPointerMove pointermove', function(e){
 
-        if(e.type == 'MSPointerMove' && !isPrimaryTouch(e.originalEvent)) return;
+        if (e.type == 'MSPointerMove' && !isPrimaryTouch(e.originalEvent)) return;
 
-        firstTouch = e.type == 'MSPointerMove' ? e : e.originalEvent.touches[0];
+        firstTouch = (e.type == 'MSPointerMove' || e.type == 'pointermove') ? e : e.originalEvent.touches[0];
 
         cancelLongTap();
         touch.x2 = firstTouch.pageX;
@@ -798,9 +823,11 @@
         deltaX += Math.abs(touch.x1 - touch.x2);
         deltaY += Math.abs(touch.y1 - touch.y2);
       })
-      .on('touchend MSPointerUp', function(e){
+      // MSPointerUp: for IE10
+      // pointerup: for IE11
+      .on('touchend MSPointerUp pointerup', function(e){
 
-        if(e.type == 'MSPointerUp' && !isPrimaryTouch(e.originalEvent)) return;
+        if (e.type == 'MSPointerUp' && !isPrimaryTouch(e.originalEvent)) return;
 
         cancelLongTap();
 
@@ -869,12 +896,489 @@
 
     "use strict";
 
+    var stacks = [];
+
+    UI.component('stackMargin', {
+
+        defaults: {
+            'cls': '@-margin-small-top'
+        },
+
+        boot: function() {
+
+            // init code
+            UI.ready(function(context) {
+
+                UI.$("[data-@-margin]", context).each(function() {
+
+                    var ele = UI.$(this), obj;
+
+                    if (!ele.data("stackMargin")) {
+                        obj = UI.stackMargin(ele, UI.Utils.options(ele.attr("data-@-margin")));
+                    }
+                });
+            });
+        },
+
+        init: function() {
+
+            var $this = this;
+
+            this.columns = this.element.children();
+
+            if (!this.columns.length) return;
+
+            UI.$win.on('resize orientationchange', (function() {
+
+                var fn = function() {
+                    $this.process();
+                };
+
+                $(function() {
+                    fn();
+                    UI.$win.on("load", fn);
+                });
+
+                return UI.Utils.debounce(fn, 20);
+            })());
+
+            UI.$html.on("changed.uk.dom", function(e) {
+                $this.columns  = $this.element.children();
+                $this.process();
+            });
+
+            this.on("display.uk.check", function(e) {
+                $this.columns = $this.element.children();
+                if(this.element.is(":visible")) this.process();
+            }.bind(this));
+
+            stacks.push(this);
+        },
+
+        process: function() {
+
+            var $this = this;
+
+            this.revert();
+
+            var skip         = false,
+                firstvisible = this.columns.filter(":visible:first"),
+                offset       = firstvisible.length ? (firstvisible.position().top + firstvisible.outerHeight()) - 1 : false; // (-1): weird firefox bug when parent container is display:flex
+
+            if (offset === false) return;
+
+            this.columns.each(function() {
+
+                var column = UI.$(this);
+
+                if (column.is(":visible")) {
+
+                    if (skip) {
+                        column.addClass($this.options.cls);
+                    } else {
+
+                        if (column.position().top >= offset) {
+                            skip = column.addClass($this.options.cls);
+                        }
+                    }
+                }
+            });
+
+            return this;
+        },
+
+        revert: function() {
+            this.columns.removeClass(this.options.cls);
+            return this;
+        }
+    });
+
+})(jQuery, UIkit);
+
+(function($, UI) {
+
+    "use strict";
+
+    UI.component('smoothScroll', {
+
+        boot: function() {
+
+            // init code
+            UI.$html.on("click.smooth-scroll.uikit", "[data-@-smooth-scroll]", function(e) {
+                var ele = UI.$(this);
+
+                if (!ele.data("smoothScroll")) {
+                    var obj = UI.smoothScroll(ele, UI.Utils.options(ele.attr("data-@-smooth-scroll")));
+                    ele.trigger("click");
+                }
+
+                return false;
+            });
+        },
+
+        init: function() {
+
+            var $this = this;
+
+            this.on("click", function(e) {
+                e.preventDefault();
+                scrollToElement(UI.$(this.hash).length ? UI.$(this.hash) : UI.$("body"), $this.options);
+            });
+        }
+    });
+
+    function scrollToElement(ele, options) {
+
+        options = $.extend({
+            duration: 1000,
+            transition: 'easeOutExpo',
+            offset: 0,
+            complete: function(){}
+        }, options);
+
+        // get / set parameters
+        var target    = ele.offset().top - options.offset,
+            docheight = UI.$doc.height(),
+            winheight = window.innerHeight;
+
+        if ((target + winheight) > docheight) {
+            target = docheight - winheight;
+        }
+
+        // animate to target, fire callback when done
+        UI.$("html,body").stop().animate({scrollTop: target}, options.duration, options.transition).promise().done(options.complete);
+    }
+
+    UI.Utils.scrollToElement = scrollToElement;
+
+    if (!$.easing.easeOutExpo) {
+        $.easing.easeOutExpo = function(x, t, b, c, d) { return (t == d) ? b + c : c * (-Math.pow(2, -10 * t / d) + 1) + b; };
+    }
+
+})(jQuery, UIkit);
+
+(function($, UI) {
+
+    "use strict";
+
+    var $win           = UI.$win,
+        $doc           = UI.$doc,
+        scrollspies    = [],
+        checkScrollSpy = function() {
+            for(var i=0; i < scrollspies.length; i++) {
+                UI.support.requestAnimationFrame.apply(window, [scrollspies[i].check]);
+            }
+        };
+
+    UI.component('scrollspy', {
+
+        defaults: {
+            "cls"        : "@-scrollspy-inview",
+            "initcls"    : "@-scrollspy-init-inview",
+            "topoffset"  : 0,
+            "leftoffset" : 0,
+            "repeat"     : false,
+            "delay"      : 0
+        },
+
+        boot: function() {
+
+            // listen to scroll and resize
+            $doc.on("scrolling.uk.document", checkScrollSpy);
+            $win.on("resize orientationchange", UI.Utils.debounce(checkScrollSpy, 50));
+
+            // init code
+            UI.ready(function(context) {
+
+                UI.$("[data-@-scrollspy]", context).each(function() {
+
+                    var element = UI.$(this);
+
+                    if (!element.data("scrollspy")) {
+                        var obj = UI.scrollspy(element, UI.Utils.options(element.attr("data-@-scrollspy")));
+                    }
+                });
+            });
+        },
+
+        init: function() {
+
+
+            var $this = this, idle, inviewstate, initinview,
+                fn = function(){
+
+                    var inview = UI.Utils.isInView($this.element, $this.options);
+
+                    if (inview && !inviewstate) {
+
+                        if(idle) clearTimeout(idle);
+
+                        if(!initinview) {
+                            $this.element.addClass($this.options.initcls);
+                            $this.offset = $this.element.offset();
+                            initinview = true;
+
+                            $this.trigger("init.uk.scrollspy");
+                        }
+
+                        idle = setTimeout(function(){
+
+                            if(inview) {
+                                $this.element.addClass("@-scrollspy-inview").addClass($this.options.cls).width();
+                            }
+                        }, $this.options.delay);
+
+                        inviewstate = true;
+                        $this.trigger("inview.uk.scrollspy");
+                    }
+
+                    if (!inview && inviewstate && $this.options.repeat) {
+                        $this.element.removeClass("@-scrollspy-inview").removeClass($this.options.cls);
+                        inviewstate = false;
+
+                        $this.trigger("outview.uk.scrollspy");
+                    }
+                };
+
+            fn();
+
+            this.check = fn;
+            scrollspies.push(this);
+        }
+    });
+
+
+    var scrollspynavs = [],
+        checkScrollSpyNavs = function() {
+            for(var i=0; i < scrollspynavs.length; i++) {
+                UI.support.requestAnimationFrame.apply(window, [scrollspynavs[i].check]);
+            }
+        };
+
+    UI.component('scrollspynav', {
+
+        defaults: {
+            "cls"          : '@-active',
+            "closest"      : false,
+            "topoffset"    : 0,
+            "leftoffset"   : 0,
+            "smoothscroll" : false
+        },
+
+        boot: function() {
+
+            // listen to scroll and resize
+            $doc.on("scrolling.uk.document", checkScrollSpyNavs);
+            $win.on("resize orientationchange", UI.Utils.debounce(checkScrollSpyNavs, 50));
+
+            // init code
+            UI.ready(function(context) {
+
+                UI.$("[data-@-scrollspy-nav]", context).each(function() {
+
+                    var element = UI.$(this);
+
+                    if (!element.data("scrollspynav")) {
+                        var obj = UI.scrollspynav(element, UI.Utils.options(element.attr("data-@-scrollspy-nav")));
+                    }
+                });
+            });
+        },
+
+        init: function() {
+
+            var ids     = [],
+                links   = this.find("a[href^='#']").each(function(){ ids.push($(this).attr("href")); }),
+                targets = $(ids.join(",")),
+
+                clsActive  = UI.prefix(this.options.cls),
+                clsClosest = UI.prefix(this.options.closest || this.options.closest);
+
+            var $this = this, inviews, fn = function(){
+
+                inviews = [];
+
+                for (var i=0 ; i < targets.length ; i++) {
+                    if (UI.Utils.isInView(targets.eq(i), $this.options)) {
+                        inviews.push(targets.eq(i));
+                    }
+                }
+
+                if (inviews.length) {
+
+                    var navitems,
+                        scrollTop = $win.scrollTop(),
+                        target = (function(){
+                            for(var i=0; i< inviews.length;i++){
+                                if(inviews[i].offset().top >= scrollTop){
+                                    return inviews[i];
+                                }
+                            }
+                        })();
+
+                    if (!target) return;
+
+                    if ($this.options.closest) {
+                        links.closest(clsClosest).removeClass(clsActive);
+                        navitems = links.filter("a[href='#"+target.attr("id")+"']").closest(clsClosest).addClass(clsActive);
+                    } else {
+                        navitems = links.removeClass(clsActive).filter("a[href='#"+target.attr("id")+"']").addClass(clsActive);
+                    }
+
+                    $this.element.trigger("inview.uk.scrollspynav", [target, navitems]);
+                }
+            };
+
+            if (this.options.smoothscroll && UI.smoothScroll) {
+                links.each(function(){
+                    UI.smoothScroll(this, $this.options.smoothscroll);
+                });
+            }
+
+            fn();
+
+            this.element.data("scrollspynav", this);
+
+            this.check = fn;
+            scrollspynavs.push(this);
+
+        }
+    });
+
+})(jQuery, UIkit);
+
+(function(global, $, UI){
+
+    "use strict";
+
+    var togglers = [];
+
+    UI.component('toggle', {
+
+        defaults: {
+            target    : false,
+            cls       : '@-hidden',
+            animation : false,
+            duration  : 200
+        },
+
+        boot: function(){
+
+            // init code
+            UI.ready(function(context) {
+
+                UI.$("[data-@-toggle]", context).each(function() {
+                    var ele = UI.$(this);
+
+                    if (!ele.data("toggle")) {
+                        var obj = UI.toggle(ele, UI.Utils.options(ele.attr("data-@-toggle")));
+                    }
+                });
+
+                setTimeout(function(){
+
+                    togglers.forEach(function(toggler){
+                        toggler.getTogglers();
+                    });
+
+                }, 0);
+            });
+        },
+
+        init: function() {
+
+            var $this = this;
+
+            this.getTogglers();
+
+            this.on("click", function(e) {
+                if ($this.element.is('a[href="#"]')) e.preventDefault();
+                $this.toggle();
+            });
+
+            togglers.push(this);
+        },
+
+        toggle: function() {
+
+            if(!this.totoggle.length) return;
+
+            if (this.options.animation) {
+
+                var $this = this, animations = UI.prefix(this.options.animation).split(',');
+
+                if (animations.length == 1) {
+                    animations[1] = animations[0];
+                }
+
+                animations[0] = animations[0].trim();
+                animations[1] = animations[1].trim();
+
+                this.totoggle.css('animation-duration', this.options.duration+'ms');
+
+                if (this.totoggle.hasClass(this.options.cls)) {
+
+                    this.totoggle.toggleClass(this.options.cls);
+
+                    this.totoggle.each(function(){
+                        UI.Utils.animate(this, animations[0]).then(function(){
+                            $(this).css('animation-duration', '');
+                            UI.Utils.checkDisplay(this);
+                        });
+                    });
+
+                } else {
+
+                    this.totoggle.each(function(){
+                        UI.Utils.animate(this, animations[1]+' @-animation-reverse').then(function(){
+                            UI.$(this).toggleClass($this.options.cls).css('animation-duration', '');
+                            UI.Utils.checkDisplay(this);
+                        }.bind(this));
+                    });
+                }
+
+            } else {
+                this.totoggle.toggleClass(this.options.cls);
+                UI.Utils.checkDisplay(this.totoggle);
+            }
+        },
+
+        getTogglers: function() {
+            this.totoggle = this.options.target ? UI.$(this.options.target):[];
+        }
+    });
+
+})(this, jQuery, UIkit);
+
+(function($, UI) {
+
+    "use strict";
+
     UI.component('alert', {
 
         defaults: {
             "fade": true,
             "duration": 200,
-            "trigger": ".uk-alert-close"
+            "trigger": ".@-alert-close"
+        },
+
+        boot: function() {
+
+            // init code
+            UI.$html.on("click.alert.uikit", "[data-@-alert]", function(e) {
+
+                var ele = UI.$(this);
+
+                if (!ele.data("alert")) {
+
+                    var alert = UI.alert(ele, UI.Utils.options(ele.attr("data-@-alert")));
+
+                    if (UI.$(e.target).is(alert.options.trigger)) {
+                        e.preventDefault();
+                        alert.close();
+                    }
+                }
+            });
         },
 
         init: function() {
@@ -889,45 +1393,28 @@
 
         close: function() {
 
-            var element = this.trigger("close");
+            var element       = this.trigger("close.uk.alert"),
+                removeElement = function () {
+                    this.trigger("closed.uk.alert").remove();
+                }.bind(this);
 
             if (this.options.fade) {
                 element.css("overflow", "hidden").css("max-height", element.height()).animate({
-                    "height": 0,
-                    "opacity": 0,
-                    "padding-top": 0,
-                    "padding-bottom": 0,
-                    "margin-top": 0,
-                    "margin-bottom": 0
+                    "height"         : 0,
+                    "opacity"        : 0,
+                    "padding-top"    : 0,
+                    "padding-bottom" : 0,
+                    "margin-top"     : 0,
+                    "margin-bottom"  : 0
                 }, this.options.duration, removeElement);
             } else {
                 removeElement();
             }
-
-            function removeElement() {
-                element.trigger("closed").remove();
-            }
         }
 
     });
 
-    // init code
-    $(document).on("click.alert.uikit", "[data-uk-alert]", function(e) {
-
-        var ele = $(this);
-
-        if (!ele.data("alert")) {
-
-            var alert = UI.alert(ele, UI.Utils.options(ele.data("uk-alert")));
-
-            if ($(e.target).is(ele.data("alert").options.trigger)) {
-                e.preventDefault();
-                alert.close();
-            }
-        }
-    });
-
-})(jQuery, jQuery.UIkit);
+})(jQuery, UIkit);
 
 (function($, UI) {
 
@@ -936,7 +1423,26 @@
     UI.component('buttonRadio', {
 
         defaults: {
-            "target": ".uk-button"
+            "target": ".@-button"
+        },
+
+        boot: function() {
+
+            // init code
+            UI.$html.on("click.buttonradio.uikit", "[data-@-button-radio]", function(e) {
+
+                var ele = UI.$(this);
+
+                if (!ele.data("buttonRadio")) {
+
+                    var obj    = UI.buttonRadio(ele, UI.Utils.options(ele.attr("data-@-button-radio"))),
+                        target = UI.$(e.target);
+
+                    if (target.is(obj.options.target)) {
+                        target.trigger("click");
+                    }
+                }
+            });
         },
 
         init: function() {
@@ -945,23 +1451,42 @@
 
             this.on("click", this.options.target, function(e) {
 
-                if ($(this).is('a[href="#"]')) e.preventDefault();
+                var ele = UI.$(this);
 
-                $this.find($this.options.target).not(this).removeClass("uk-active").blur();
-                $this.trigger("change", [$(this).addClass("uk-active")]);
+                if (ele.is('a[href="#"]')) e.preventDefault();
+
+                $this.find($this.options.target).not(ele).removeClass(UI.prefix("@-active")).blur();
+                $this.trigger("change.uk.button", [ele.addClass("@-active")]);
             });
 
         },
 
         getSelected: function() {
-            this.find(".uk-active");
+            return this.find(".@-active");
         }
     });
 
     UI.component('buttonCheckbox', {
 
         defaults: {
-            "target": ".uk-button"
+            "target": ".@-button"
+        },
+
+        boot: function() {
+
+            UI.$html.on("click.buttoncheckbox.uikit", "[data-@-button-checkbox]", function(e) {
+                var ele = UI.$(this);
+
+                if (!ele.data("buttonCheckbox")) {
+
+                    var obj    = UI.buttonCheckbox(ele, UI.Utils.options(ele.attr("data-@-button-checkbox"))),
+                        target = UI.$(e.target);
+
+                    if (target.is(obj.options.target)) {
+                        ele.trigger("change.uk.button", [target.toggleClass("@-active").blur()]);
+                    }
+                }
+            });
         },
 
         init: function() {
@@ -972,13 +1497,13 @@
 
                 if ($(this).is('a[href="#"]')) e.preventDefault();
 
-                $this.trigger("change", [$(this).toggleClass("uk-active").blur()]);
+                $this.trigger("change.uk.button", [UI.$(this).toggleClass("@-active").blur()]);
             });
 
         },
 
         getSelected: function() {
-            this.find(".uk-active");
+            return this.find(".@-active");
         }
     });
 
@@ -986,6 +1511,19 @@
     UI.component('button', {
 
         defaults: {},
+
+        boot: function() {
+
+            UI.$html.on("click.button.uikit", "[data-@-button]", function(e) {
+                var ele = UI.$(this);
+
+                if (!ele.data("button")) {
+
+                    var obj = UI.button(ele, UI.Utils.options(ele.attr("data-@-button")));
+                    ele.trigger("click");
+                }
+            });
+        },
 
         init: function() {
 
@@ -996,54 +1534,17 @@
                 if ($this.element.is('a[href="#"]')) e.preventDefault();
 
                 $this.toggle();
-                $this.trigger("change", [$element.blur().hasClass("uk-active")]);
+                $this.trigger("change.uk.button", [$this.element.blur().hasClass("@-active")]);
             });
 
         },
 
         toggle: function() {
-            this.element.toggleClass("uk-active");
+            this.element.toggleClass("@-active");
         }
     });
 
-
-    // init code
-    $(document).on("click.buttonradio.uikit", "[data-uk-button-radio]", function(e) {
-        var ele = $(this);
-
-        if (!ele.data("buttonRadio")) {
-            var obj = UI.buttonRadio(ele, UI.Utils.options(ele.attr("data-uk-button-radio")));
-
-            if ($(e.target).is(obj.options.target)) {
-                $(e.target).trigger("click");
-            }
-        }
-    });
-
-    $(document).on("click.buttoncheckbox.uikit", "[data-uk-button-checkbox]", function(e) {
-        var ele = $(this);
-
-        if (!ele.data("buttonCheckbox")) {
-
-            var obj = UI.buttonCheckbox(ele, UI.Utils.options(ele.attr("data-uk-button-checkbox"))), target=$(e.target);
-
-            if (target.is(obj.options.target)) {
-                ele.trigger("change", [target.toggleClass("uk-active").blur()]);
-            }
-        }
-    });
-
-    $(document).on("click.button.uikit", "[data-uk-button]", function(e) {
-        var ele = $(this);
-
-        if (!ele.data("button")) {
-
-            var obj = UI.button(ele, UI.Utils.options(ele.attr("data-uk-button")));
-            ele.trigger("click");
-        }
-    });
-
-})(jQuery, jQuery.UIkit);
+})(jQuery, UIkit);
 
 (function($, UI) {
 
@@ -1057,52 +1558,75 @@
            'mode'       : 'hover',
            'remaintime' : 800,
            'justify'    : false,
-           'boundary'   : $(window),
+           'boundary'   : UI.$win,
            'delay'      : 0
         },
 
         remainIdle: false,
 
+        boot: function() {
+
+            var triggerevent = UI.support.touch ? "click" : "mouseenter";
+
+            // init code
+            UI.$html.on(triggerevent+".dropdown.uikit", "[data-@-dropdown]", function(e) {
+
+                var ele = UI.$(this);
+
+                if (!ele.data("dropdown")) {
+
+                    var dropdown = UI.dropdown(ele, UI.Utils.options(ele.attr("data-@-dropdown")));
+
+                    if (triggerevent=="click" || (triggerevent=="mouseenter" && dropdown.options.mode=="hover")) {
+                        dropdown.element.trigger(triggerevent);
+                    }
+
+                    if(dropdown.element.find('.@-dropdown').length) {
+                        e.preventDefault();
+                    }
+                }
+            });
+        },
+
         init: function() {
 
             var $this = this;
 
-            this.dropdown = this.find(".uk-dropdown");
+            this.dropdown  = this.find('.@-dropdown');
 
-            this.centered  = this.dropdown.hasClass("uk-dropdown-center");
-            this.justified = this.options.justify ? $(this.options.justify) : false;
+            this.centered  = this.dropdown.hasClass('@-dropdown-center');
+            this.justified = this.options.justify ? UI.$(this.options.justify) : false;
 
-            this.boundary  = $(this.options.boundary);
-            this.flipped   = this.dropdown.hasClass('uk-dropdown-flip');
+            this.boundary  = UI.$(this.options.boundary);
+            this.flipped   = this.dropdown.hasClass('@-dropdown-flip');
 
-            if(!this.boundary.length) {
-                this.boundary = $(window);
+            if (!this.boundary.length) {
+                this.boundary = UI.$win;
             }
 
             if (this.options.mode == "click" || UI.support.touch) {
 
                 this.on("click", function(e) {
 
-                    var $target = $(e.target);
+                    var $target = UI.$(e.target);
 
-                    if (!$target.parents(".uk-dropdown").length) {
+                    if (!$target.parents(".@-dropdown").length) {
 
-                        if ($target.is("a[href='#']") || $target.parent().is("a[href='#']")){
+                        if ($target.is("a[href='#']") || $target.parent().is("a[href='#']") || ($this.dropdown.length && !$this.dropdown.is(":visible")) ){
                             e.preventDefault();
                         }
 
                         $target.blur();
                     }
 
-                    if (!$this.element.hasClass("uk-open")) {
+                    if (!$this.element.hasClass('@-open')) {
 
                         $this.show();
 
                     } else {
 
-                        if ($target.is("a:not(.js-uk-prevent)") || $target.is(".uk-dropdown-close") || !$this.dropdown.find(e.target).length) {
-                            $this.element.removeClass("uk-open");
-                            active = false;
+                        if ($target.is("a:not(.js-@-prevent)") || $target.is(".@-dropdown-close") || !$this.dropdown.find(e.target).length) {
+                            $this.hide();
                         }
                     }
                 });
@@ -1128,12 +1652,7 @@
                     }
 
                     $this.remainIdle = setTimeout(function() {
-
-                        $this.element.removeClass("uk-open");
-                        $this.remainIdle = false;
-
-                        if (active && active[0] == $this.element[0]) active = false;
-
+                        $this.hide();
                     }, $this.options.remaintime);
 
                 }).on("click", function(e){
@@ -1155,8 +1674,10 @@
 
         show: function(){
 
+            UI.$html.off("click.outer.dropdown");
+
             if (active && active[0] != this.element[0]) {
-                active.removeClass("uk-open");
+                active.removeClass('@-open');
             }
 
             if (hoverIdle) {
@@ -1164,31 +1685,41 @@
             }
 
             this.checkDimensions();
-            this.element.addClass("uk-open");
-            this.trigger('uk.dropdown.show', [this]);
+            this.element.addClass('@-open');
+            this.trigger('show.uk.dropdown', [this]);
+
+            UI.Utils.checkDisplay(this.dropdown, true);
             active = this.element;
 
             this.registerOuterClick();
+        },
+
+        hide: function() {
+            this.element.removeClass('@-open');
+            this.remainIdle = false;
+
+            if (active && active[0] == this.element[0]) active = false;
         },
 
         registerOuterClick: function(){
 
             var $this = this;
 
-            $(document).off("click.outer.dropdown");
+            UI.$html.off("click.outer.dropdown");
 
             setTimeout(function() {
-                $(document).on("click.outer.dropdown", function(e) {
+
+                UI.$html.on("click.outer.dropdown", function(e) {
 
                     if (hoverIdle) {
                         clearTimeout(hoverIdle);
                     }
 
-                    var $target = $(e.target);
+                    var $target = UI.$(e.target);
 
-                    if (active && active[0] == $this.element[0] && ($target.is("a:not(.js-uk-prevent)") || $target.is(".uk-dropdown-close") || !$this.dropdown.find(e.target).length)) {
-                        active.removeClass("uk-open");
-                        $(document).off("click.outer.dropdown");
+                    if (active && active[0] == $this.element[0] && ($target.is("a:not(.js-@-prevent)") || $target.is(".@-dropdown-close") || !$this.dropdown.find(e.target).length)) {
+                        $this.hide();
+                        UI.$html.off("click.outer.dropdown");
                     }
                 });
             }, 10);
@@ -1196,14 +1727,14 @@
 
         checkDimensions: function() {
 
-            if(!this.dropdown.length) return;
+            if (!this.dropdown.length) return;
 
             if (this.justified && this.justified.length) {
                 this.dropdown.css("min-width", "");
             }
 
             var $this     = this,
-                dropdown  = this.dropdown.css("margin-" + $.UIkit.langdirection, ""),
+                dropdown  = this.dropdown.css("margin-" + UI.langdirection, ""),
                 offset    = dropdown.show().offset(),
                 width     = dropdown.outerWidth(),
                 boundarywidth  = this.boundary.width(),
@@ -1211,12 +1742,12 @@
 
             // centered dropdown
             if (this.centered) {
-                dropdown.css("margin-" + $.UIkit.langdirection, (parseFloat(width) / 2 - dropdown.parent().width() / 2) * -1);
+                dropdown.css("margin-" + UI.langdirection, (parseFloat(width) / 2 - dropdown.parent().width() / 2) * -1);
                 offset = dropdown.offset();
 
                 // reset dropdown
                 if ((width + offset.left) > boundarywidth || offset.left < 0) {
-                    dropdown.css("margin-" + $.UIkit.langdirection, "");
+                    dropdown.css("margin-" + UI.langdirection, "");
                     offset = dropdown.offset();
                 }
             }
@@ -1228,7 +1759,7 @@
 
                 dropdown.css("min-width", jwidth);
 
-                if ($.UIkit.langdirection == 'right') {
+                if (UI.langdirection == 'right') {
 
                     var right1   = boundarywidth - (this.justified.offset().left + jwidth),
                         right2   = boundarywidth - (dropdown.offset().left + dropdown.outerWidth());
@@ -1244,31 +1775,31 @@
             }
 
             if ((width + (offset.left-boundaryoffset)) > boundarywidth) {
-                dropdown.addClass("uk-dropdown-flip");
+                dropdown.addClass('@-dropdown-flip');
                 offset = dropdown.offset();
             }
 
             if ((offset.left-boundaryoffset) < 0) {
 
-                dropdown.addClass("uk-dropdown-stack");
+                dropdown.addClass("@-dropdown-stack");
 
-                if (dropdown.hasClass("uk-dropdown-flip")) {
+                if (dropdown.hasClass('@-dropdown-flip')) {
 
                     if (!this.flipped) {
-                        dropdown.removeClass("uk-dropdown-flip");
+                        dropdown.removeClass('@-dropdown-flip');
                         offset = dropdown.offset();
-                        dropdown.addClass("uk-dropdown-flip");
+                        dropdown.addClass('@-dropdown-flip');
                     }
 
                     setTimeout(function(){
 
                         if ((dropdown.offset().left-boundaryoffset) < 0 || !$this.flipped && (dropdown.outerWidth() + (offset.left-boundaryoffset)) < boundarywidth) {
-                            dropdown.removeClass("uk-dropdown-flip");
+                            dropdown.removeClass('@-dropdown-flip');
                         }
                     }, 0);
                 }
 
-                this.trigger('uk.dropdown.stack', [this]);
+                this.trigger('stack.uk.dropdown', [this]);
             }
 
             dropdown.css("display", "");
@@ -1276,39 +1807,34 @@
 
     });
 
-    var triggerevent = UI.support.touch ? "click" : "mouseenter";
-
-    // init code
-    $(document).on(triggerevent+".dropdown.uikit", "[data-uk-dropdown]", function(e) {
-        var ele = $(this);
-
-        if (!ele.data("dropdown")) {
-
-            var dropdown = UI.dropdown(ele, UI.Utils.options(ele.data("uk-dropdown")));
-
-            if (triggerevent=="click" || (triggerevent=="mouseenter" && dropdown.options.mode=="hover")) {
-                dropdown.element.trigger(triggerevent);
-            }
-
-            if(dropdown.element.find('.uk-dropdown').length) {
-                e.preventDefault();
-            }
-        }
-    });
-
-})(jQuery, jQuery.UIkit);
+})(jQuery, UIkit);
 
 (function($, UI) {
 
     "use strict";
 
-    var win = $(window), event = 'resize orientationchange', grids = [];
+    var grids = [];
 
     UI.component('gridMatchHeight', {
 
         defaults: {
             "target" : false,
             "row"    : true
+        },
+
+        boot: function() {
+
+            // init code
+            UI.ready(function(context) {
+
+                UI.$("[data-@-grid-match]", context).each(function() {
+                    var grid = UI.$(this), obj;
+
+                    if (!grid.data("gridMatchHeight")) {
+                        obj = UI.gridMatchHeight(grid, UI.Utils.options(grid.attr("data-@-grid-match")));
+                    }
+                });
+            });
         },
 
         init: function() {
@@ -1320,24 +1846,29 @@
 
             if (!this.columns.length) return;
 
-            win.on(event, (function() {
+            UI.$win.on('resize orientationchange', (function() {
+
                 var fn = function() {
                     $this.match();
                 };
 
                 $(function() {
                     fn();
-                    win.on("load", fn);
+                    UI.$win.on("load", fn);
                 });
 
-                return UI.Utils.debounce(fn, 150);
+                return UI.Utils.debounce(fn, 50);
             })());
 
-            $(document).on("uk-domready", function(e) {
+            UI.$html.on("changed.uk.dom", function(e) {
                 $this.columns  = $this.element.children();
                 $this.elements = $this.options.target ? $this.find($this.options.target) : $this.columns;
                 $this.match();
             });
+
+            this.on("display.uk.check", function(e) {
+                if(this.element.is(":visible")) this.match();
+            }.bind(this));
 
             grids.push(this);
         },
@@ -1418,7 +1949,22 @@
     UI.component('gridMargin', {
 
         defaults: {
-            "cls": "uk-grid-margin"
+            "cls": "@-grid-margin"
+        },
+
+        boot: function() {
+
+            // init code
+            UI.ready(function(context) {
+
+                UI.$("[data-@-grid-margin]", context).each(function() {
+                    var grid = UI.$(this), obj;
+
+                    if (!grid.data("gridMargin")) {
+                        obj = UI.gridMargin(grid, UI.Utils.options(grid.attr("data-@-grid-margin")));
+                    }
+                });
+            });
         },
 
         init: function() {
@@ -1429,35 +1975,13 @@
         }
     });
 
+})(jQuery, UIkit);
 
-    // init code
-    $(document).on("uk-domready", function(e) {
-        $("[data-uk-grid-match],[data-uk-grid-margin]").each(function() {
-            var grid = $(this), obj;
-
-            if (grid.is("[data-uk-grid-match]") && !grid.data("gridMatchHeight")) {
-                obj = UI.gridMatchHeight(grid, UI.Utils.options(grid.attr("data-uk-grid-match")));
-            }
-
-            if (grid.is("[data-uk-grid-margin]") && !grid.data("gridMargin")) {
-                obj = UI.gridMargin(grid, UI.Utils.options(grid.attr("data-uk-grid-margin")));
-            }
-        });
-    });
-
-    $(document).on("uk-check-display", function(e) {
-        grids.forEach(function(item) {
-            if(item.element.is(":visible")) item.match();
-        });
-    });
-
-})(jQuery, jQuery.UIkit);
-
-(function($, UI, $win) {
+(function($, UI) {
 
     "use strict";
 
-    var active = false, $html = $('html'), body;
+    var active = false, $html = UI.$html, body;
 
     UI.component('modal', {
 
@@ -1477,12 +2001,12 @@
             var $this = this;
 
             this.transition = UI.support.transition;
-            this.dialog     = this.find(".uk-modal-dialog");
+            this.paddingdir = "padding-" + (UI.langdirection == 'left' ? "right":"left");
+            this.dialog     = this.find(".@-modal-dialog");
 
-            this.on("click", ".uk-modal-close", function(e) {
+            this.on("click", ".@-modal-close", function(e) {
                 e.preventDefault();
                 $this.hide();
-
             }).on("click", function(e) {
 
                 var target = $(e.target);
@@ -1490,9 +2014,7 @@
                 if (target[0] == $this.element[0] && $this.options.bgclose) {
                     $this.hide();
                 }
-
             });
-
         },
 
         toggle: function() {
@@ -1506,15 +2028,15 @@
             if (this.isActive()) return;
             if (active) active.hide(true);
 
-            this.element.removeClass("uk-open").show();
+            this.element.removeClass("@-open").show();
             this.resize();
 
             active = this;
-            $html.addClass("uk-modal-page").height(); // force browser engine redraw
+            $html.addClass("@-modal-page").height(); // force browser engine redraw
 
-            this.element.addClass("uk-open").trigger("uk.modal.show");
+            this.element.addClass("@-open").trigger("show.uk.modal");
 
-            $(document).trigger("uk-check-display");
+            UI.Utils.checkDisplay(this.dialog, true);
 
             return this;
         },
@@ -1529,7 +2051,7 @@
 
                 this.one(UI.support.transition.end, function() {
                     $this._hide();
-                }).removeClass("uk-open");
+                }).removeClass("@-open");
 
             } else {
 
@@ -1541,19 +2063,13 @@
 
         resize: function() {
 
-            var paddingdir = "padding-" + (UI.langdirection == 'left' ? "left":"right"),
-                margindir  = "margin-" + (UI.langdirection == 'left' ? "left":"right"),
-                bodywidth  = body.width();
+            var bodywidth  = body.width();
 
             this.scrollbarwidth = window.innerWidth - bodywidth;
 
-            $html.css(margindir, this.scrollbarwidth * -1);
+            body.css(this.paddingdir, this.scrollbarwidth);
 
-            this.element.css(paddingdir, "");
-
-            if (this.dialog.offset().left > this.scrollbarwidth) {
-                this.element.css(paddingdir, this.scrollbarwidth - (this.element[0].scrollHeight==window.innerHeight ? 0:this.scrollbarwidth ));
-            }
+            this.element.css('overflow-y', this.scrollbarwidth ? 'scroll' : 'auto');
 
             this.updateScrollable();
 
@@ -1562,8 +2078,7 @@
         updateScrollable: function() {
 
             // has scrollable?
-
-            var scrollable = this.dialog.find('.uk-overflow-container:visible:first');
+            var scrollable = this.dialog.find('.@-overflow-container:visible:first');
 
             if (scrollable) {
 
@@ -1580,13 +2095,15 @@
 
         _hide: function() {
 
-            this.element.hide().removeClass("uk-open");
+            this.element.hide().removeClass("@-open");
 
-            $html.removeClass("uk-modal-page").css("margin-" + (UI.langdirection == 'left' ? "left":"right"), "");
+            $html.removeClass("@-modal-page");
+
+            body.css(this.paddingdir, "");
 
             if(active===this) active = false;
 
-            this.trigger("uk.modal.hide");
+            this.trigger("hide.uk.modal");
         },
 
         isActive: function() {
@@ -1596,6 +2113,38 @@
     });
 
     UI.component('modalTrigger', {
+
+        boot: function() {
+
+            // init code
+            UI.$html.on("click.modal.uikit", "[data-@-modal]", function(e) {
+
+                var ele = UI.$(this);
+
+                if (ele.is("a")) {
+                    e.preventDefault();
+                }
+
+                if (!ele.data("modalTrigger")) {
+                    var modal = UI.modalTrigger(ele, UI.Utils.options(ele.attr("data-@-modal")));
+                    modal.show();
+                }
+
+            });
+
+            // close modal on esc button
+            UI.$html.on('keydown.modal.uikit', function (e) {
+
+                if (active && e.keyCode === 27 && active.options.keyboard) { // ESC
+                    e.preventDefault();
+                    active.hide();
+                }
+            });
+
+            UI.$win.on("resize orientationchange", UI.Utils.debounce(function(){
+                if (active) active.resize();
+            }, 150));
+        },
 
         init: function() {
 
@@ -1619,9 +2168,9 @@
 
     UI.modal.dialog = function(content, options) {
 
-        var modal = UI.modal($(UI.modal.dialog.template).appendTo("body"), options);
+        var modal = UI.modal(UI.$(UI.modal.dialog.template).appendTo("body"), options);
 
-        modal.on("uk.modal.hide", function(){
+        modal.on("hide.uk.modal", function(){
             if (modal.persist) {
                 modal.persist.appendTo(modal.persist.data("modalPersistParent"));
                 modal.persist = false;
@@ -1634,14 +2183,14 @@
         return modal;
     };
 
-    UI.modal.dialog.template = '<div class="uk-modal"><div class="uk-modal-dialog"></div></div>';
+    UI.modal.dialog.template = '<div class="@-modal"><div class="@-modal-dialog"></div></div>';
 
     UI.modal.alert = function(content, options) {
 
         UI.modal.dialog(([
-            '<div class="uk-margin uk-modal-content">'+String(content)+'</div>',
-            '<div class="uk-modal-buttons"><button class="uk-button uk-button-primary uk-modal-close">Ok</button></div>'
-        ]).join(""), $.extend({bgclose:false, keyboard:false}, options)).show();
+            '<div class="@-margin @-modal-content">'+String(content)+'</div>',
+            '<div class="@-modal-buttons"><button class="@-button @-button-primary @-modal-close">Ok</button></div>'
+        ]).join("").replace(/@-/g, UI._prefix+'-').replace(/@-/g, UI._prefix+'-'), $.extend({bgclose:false, keyboard:false}, options)).show();
     };
 
     UI.modal.confirm = function(content, onconfirm, options) {
@@ -1649,9 +2198,9 @@
         onconfirm = $.isFunction(onconfirm) ? onconfirm : function(){};
 
         var modal = UI.modal.dialog(([
-            '<div class="uk-margin uk-modal-content">'+String(content)+'</div>',
-            '<div class="uk-modal-buttons"><button class="uk-button uk-button-primary js-modal-confirm">Ok</button> <button class="uk-button uk-modal-close">Cancel</button></div>'
-        ]).join(""), $.extend({bgclose:false, keyboard:false}, options));
+            '<div class="@-margin @-modal-content">'+String(content)+'</div>',
+            '<div class="@-modal-buttons"><button class="@-button @-button-primary js-modal-confirm">Ok</button> <button class="@-button @-modal-close">Cancel</button></div>'
+        ]).join("").replace(/@-/g, UI._prefix+'-'), $.extend({bgclose:false, keyboard:false}, options));
 
         modal.element.find(".js-modal-confirm").on("click", function(){
             onconfirm();
@@ -1660,35 +2209,6 @@
 
         modal.show();
     };
-
-    // init code
-    $(document).on("click.modal.uikit", "[data-uk-modal]", function(e) {
-
-        var ele = $(this);
-
-        if(ele.is("a")) {
-            e.preventDefault();
-        }
-
-        if (!ele.data("modalTrigger")) {
-            var modal = UI.modalTrigger(ele, UI.Utils.options(ele.attr("data-uk-modal")));
-            modal.show();
-        }
-
-    });
-
-    // close modal on esc button
-    $(document).on('keydown.modal.uikit', function (e) {
-
-        if (active && e.keyCode === 27 && active.options.keyboard) { // ESC
-            e.preventDefault();
-            active.hide();
-        }
-    });
-
-    $win.on("resize orientationchange", UI.Utils.debounce(function(){
-        if(active) active.resize();
-    }, 150));
 
 
     // helper functions
@@ -1699,7 +2219,7 @@
         if (typeof content === 'object') {
 
             // convert DOM object to a jQuery object
-            content = content instanceof jQuery ? content : $(content);
+            content = content instanceof jQuery ? content : UI.$(content);
 
             if(content.parent().length) {
                 modal.persist = content;
@@ -1710,141 +2230,15 @@
                 content = $('<div></div>').html(content);
         }else {
                 // unsupported data type!
-                content = $('<div></div>').html('$.UIkitt.modal Error: Unsupported data type: ' + typeof content);
+                content = $('<div></div>').html('UIkit.modal Error: Unsupported data type: ' + typeof content);
         }
 
-        content.appendTo(modal.element.find('.uk-modal-dialog'));
+        content.appendTo(modal.element.find('.@-modal-dialog'));
 
         return modal;
     }
 
-})(jQuery, jQuery.UIkit, jQuery(window));
-
-(function($, UI) {
-
-    "use strict";
-
-    var scrollpos = {x: window.scrollX, y: window.scrollY},
-        $win      = $(window),
-        $doc      = $(document),
-        $html     = $('html'),
-        Offcanvas = {
-
-        show: function(element) {
-
-            element = $(element);
-
-            if (!element.length) return;
-
-            var $body     = $('body'),
-                winwidth  = $win.width(),
-                bar       = element.find(".uk-offcanvas-bar:first"),
-                rtl       = ($.UIkit.langdirection == "right"),
-                flip      = bar.hasClass("uk-offcanvas-bar-flip") ? -1:1,
-                dir       = flip * (rtl ? -1 : 1);
-
-            scrollpos = {x: window.scrollX, y: window.scrollY};
-
-            element.addClass("uk-active");
-
-            $body.css({"width": window.innerWidth, "height": $win.height()}).addClass("uk-offcanvas-page");
-            $body.css((rtl ? "margin-right" : "margin-left"), (rtl ? -1 : 1) * (bar.outerWidth() * dir)).width(); // .width() - force redraw
-
-            $html.css('margin-top', scrollpos.y * -1);
-
-            bar.addClass("uk-offcanvas-bar-show");
-
-            element.off(".ukoffcanvas").on("click.ukoffcanvas swipeRight.ukoffcanvas swipeLeft.ukoffcanvas", function(e) {
-
-                var target = $(e.target);
-
-                if (!e.type.match(/swipe/)) {
-
-                    if (!target.hasClass("uk-offcanvas-close")) {
-                        if (target.hasClass("uk-offcanvas-bar")) return;
-                        if (target.parents(".uk-offcanvas-bar:first").length) return;
-                    }
-                }
-
-                e.stopImmediatePropagation();
-                Offcanvas.hide();
-            });
-
-            $doc.on('keydown.ukoffcanvas', function(e) {
-                if (e.keyCode === 27) { // ESC
-                    Offcanvas.hide();
-                }
-            });
-        },
-
-        hide: function(force) {
-
-            var $body = $('body'),
-                panel = $(".uk-offcanvas.uk-active"),
-                rtl   = ($.UIkit.langdirection == "right"),
-                bar   = panel.find(".uk-offcanvas-bar:first");
-
-            if (!panel.length) return;
-
-            if ($.UIkit.support.transition && !force) {
-
-                $body.one($.UIkit.support.transition.end, function() {
-                    $body.removeClass("uk-offcanvas-page").css({"width": "", "height": ""});
-                    panel.removeClass("uk-active");
-                    $html.css('margin-top', '');
-                    window.scrollTo(scrollpos.x, scrollpos.y);
-                }).css((rtl ? "margin-right" : "margin-left"), "");
-
-                setTimeout(function(){
-                    bar.removeClass("uk-offcanvas-bar-show");
-                }, 0);
-
-            } else {
-                $body.removeClass("uk-offcanvas-page").css({"width": "", "height": ""});
-                panel.removeClass("uk-active");
-                bar.removeClass("uk-offcanvas-bar-show");
-                $html.css('margin-top', '');
-                window.scrollTo(scrollpos.x, scrollpos.y);
-            }
-
-            panel.off(".ukoffcanvas");
-            $doc.off(".ukoffcanvas");
-        }
-    };
-
-    UI.component('offcanvasTrigger', {
-
-        init: function() {
-
-            var $this = this;
-
-            this.options = $.extend({
-                "target": $this.element.is("a") ? $this.element.attr("href") : false
-            }, this.options);
-
-            this.on("click", function(e) {
-                e.preventDefault();
-                Offcanvas.show($this.options.target);
-            });
-        }
-    });
-
-    UI.offcanvas = Offcanvas;
-
-    // init code
-    $doc.on("click.offcanvas.uikit", "[data-uk-offcanvas]", function(e) {
-
-        e.preventDefault();
-
-        var ele = $(this);
-
-        if (!ele.data("offcanvasTrigger")) {
-            var obj = UI.offcanvasTrigger(ele, UI.Utils.options(ele.attr("data-uk-offcanvas")));
-            ele.trigger("click");
-        }
-    });
-
-})(jQuery, jQuery.UIkit);
+})(jQuery, UIkit);
 
 (function($, UI) {
 
@@ -1853,9 +2247,24 @@
     UI.component('nav', {
 
         defaults: {
-            "toggle": ">li.uk-parent > a[href='#']",
-            "lists": ">li.uk-parent > ul",
+            "toggle": ">li.@-parent > a[href='#']",
+            "lists": ">li.@-parent > ul",
             "multiple": false
+        },
+
+        boot: function() {
+
+            // init code
+            UI.ready(function(context) {
+
+                UI.$("[data-@-nav]", context).each(function() {
+                    var nav = UI.$(this);
+
+                    if (!nav.data("nav")) {
+                        var obj = UI.nav(nav, UI.Utils.options(nav.attr("data-@-nav")));
+                    }
+                });
+            });
         },
 
         init: function() {
@@ -1864,14 +2273,14 @@
 
             this.on("click", this.options.toggle, function(e) {
                 e.preventDefault();
-                var ele = $(this);
+                var ele = UI.$(this);
                 $this.open(ele.parent()[0] == $this.element[0] ? ele : ele.parent("li"));
             });
 
             this.find(this.options.lists).each(function() {
-                var $ele   = $(this),
+                var $ele   = UI.$(this),
                     parent = $ele.parent(),
-                    active = parent.hasClass("uk-active");
+                    active = parent.hasClass("@-active");
 
                 $ele.wrap('<div style="overflow:hidden;height:0;position:relative;"></div>');
                 parent.data("list-container", $ele.parent());
@@ -1883,27 +2292,31 @@
 
         open: function(li, noanimation) {
 
-            var element = this.element, $li = $(li);
+            var element = this.element, $li = UI.$(li);
 
             if (!this.options.multiple) {
 
-                element.children(".uk-open").not(li).each(function() {
-                    if ($(this).data("list-container")) {
-                        $(this).data("list-container").stop().animate({height: 0}, function() {
-                            $(this).parent().removeClass("uk-open");
+                element.children(".@-open").not(li).each(function() {
+
+                    var ele = UI.$(this);
+
+                    if (ele.data("list-container")) {
+                        ele.data("list-container").stop().animate({height: 0}, function() {
+                            UI.$(this).parent().removeClass("@-open");
                         });
                     }
                 });
             }
 
-            $li.toggleClass("uk-open");
+            $li.toggleClass("@-open");
 
             if ($li.data("list-container")) {
+
                 if (noanimation) {
-                    $li.data('list-container').stop().height($li.hasClass("uk-open") ? "auto" : 0);
+                    $li.data('list-container').stop().height($li.hasClass("@-open") ? "auto" : 0);
                 } else {
                     $li.data('list-container').stop().animate({
-                        height: ($li.hasClass("uk-open") ? getHeight($li.data('list-container').find('ul:first')) : 0)
+                        height: ($li.hasClass("@-open") ? getHeight($li.data('list-container').find('ul:first')) : 0)
                     });
                 }
             }
@@ -1914,7 +2327,7 @@
     // helper
 
     function getHeight(ele) {
-        var $ele = $(ele), height = "auto";
+        var $ele = UI.$(ele), height = "auto";
 
         if ($ele.is(":visible")) {
             height = $ele.outerHeight();
@@ -1933,25 +2346,592 @@
         return height;
     }
 
-    // init code
-    $(document).on("uk-domready", function(e) {
-        $("[data-uk-nav]").each(function() {
-            var nav = $(this);
+})(jQuery, UIkit);
 
-            if (!nav.data("nav")) {
-                var obj = UI.nav(nav, UI.Utils.options(nav.attr("data-uk-nav")));
+(function($, UI) {
+
+    "use strict";
+
+    var scrollpos = {x: window.scrollX, y: window.scrollY},
+        $win      = UI.$win,
+        $doc      = UI.$doc,
+        $html     = UI.$html,
+        Offcanvas = {
+
+        show: function(element) {
+
+            element = UI.$(element);
+
+            if (!element.length) return;
+
+            var $body     = UI.$('body'),
+                bar       = element.find(".@-offcanvas-bar:first"),
+                rtl       = (UI.langdirection == "right"),
+                flip      = bar.hasClass("@-offcanvas-bar-flip") ? -1:1,
+                dir       = flip * (rtl ? -1 : 1);
+
+            scrollpos = {x: window.pageXOffset, y: window.pageYOffset};
+
+            element.addClass("@-active");
+
+            $body.css({"width": window.innerWidth, "height": window.innerHeight}).addClass("@-offcanvas-page");
+            $body.css((rtl ? "margin-right" : "margin-left"), (rtl ? -1 : 1) * (bar.outerWidth() * dir)).width(); // .width() - force redraw
+
+            $html.css('margin-top', scrollpos.y * -1);
+
+            bar.addClass("@-offcanvas-bar-show");
+
+            this._initElement(element);
+
+            $doc.trigger('show.uk.offcanvas', [element, bar]);
+        },
+
+        hide: function(force) {
+
+            var $body = UI.$('body'),
+                panel = UI.$(".@-offcanvas.@-active"),
+                rtl   = (UI.langdirection == "right"),
+                bar   = panel.find(".@-offcanvas-bar:first"),
+                finalize = function() {
+                    $body.removeClass("@-offcanvas-page").css({"width": "", "height": "", "margin-left": "", "margin-right": ""});
+                    panel.removeClass("@-active");
+                    bar.removeClass("@-offcanvas-bar-show");
+                    $html.css('margin-top', '');
+                    window.scrollTo(scrollpos.x, scrollpos.y);
+                    UI.$doc.trigger('hide.uk.offcanvas', [panel, bar]);
+                };
+
+            if (!panel.length) return;
+
+            if (UI.support.transition && !force) {
+
+                $body.one(UI.support.transition.end, function() {
+                    finalize();
+                }).css((rtl ? "margin-right" : "margin-left"), "");
+
+                setTimeout(function(){
+                    bar.removeClass("@-offcanvas-bar-show");
+                }, 0);
+
+            } else {
+                finalize();
             }
-        });
+        },
+
+        _initElement: function(element) {
+
+            if (element.data("OffcanvasInit")) return;
+
+            element.on("click.uk.offcanvas swipeRight.uk.offcanvas swipeLeft.uk.offcanvas", function(e) {
+
+                var target = UI.$(e.target);
+
+                if (!e.type.match(/swipe/)) {
+
+                    if (!target.hasClass("@-offcanvas-close")) {
+                        if (target.hasClass("@-offcanvas-bar")) return;
+                        if (target.parents(".@-offcanvas-bar:first").length) return;
+                    }
+                }
+
+                e.stopImmediatePropagation();
+                Offcanvas.hide();
+            });
+
+            element.on("click", "a[href^='#']", function(e){
+
+                var element = $(this),
+                    href = element.attr("href");
+
+                if (href == "#") {
+                    return;
+                }
+
+                UI.$doc.one('hide.uk.offcanvas', function() {
+
+                    var target = $(href);
+
+                    if (!target.length) {
+                        target = UI.$('[name="'+href.replace('#','')+'"]');
+                    }
+
+                    if (UI.Utils.scrollToElement && target.length) {
+                        UI.Utils.scrollToElement(target);
+                    } else {
+                        window.location.href = href;
+                    }
+                });
+
+                Offcanvas.hide();
+            });
+
+            element.data("OffcanvasInit", true);
+        }
+    };
+
+    UI.component('offcanvasTrigger', {
+
+        boot: function() {
+
+            // init code
+            $html.on("click.offcanvas.uikit", "[data-@-offcanvas]", function(e) {
+
+                e.preventDefault();
+
+                var ele = UI.$(this);
+
+                if (!ele.data("offcanvasTrigger")) {
+                    var obj = UI.offcanvasTrigger(ele, UI.Utils.options(ele.attr("data-@-offcanvas")));
+                    ele.trigger("click");
+                }
+            });
+
+            $html.on('keydown.uk.offcanvas', function(e) {
+
+                if (e.keyCode === 27) { // ESC
+                    Offcanvas.hide();
+                }
+            });
+        },
+
+        init: function() {
+
+            var $this = this;
+
+            this.options = $.extend({
+                "target": $this.element.is("a") ? $this.element.attr("href") : false
+            }, this.options);
+
+            this.on("click", function(e) {
+                e.preventDefault();
+                Offcanvas.show($this.options.target);
+            });
+        }
     });
 
-})(jQuery, jQuery.UIkit);
+    UI.offcanvas = Offcanvas;
 
-(function($, UI, $win) {
+})(jQuery, UIkit);
+
+(function($, UI) {
+
+    "use strict";
+
+    var Animations;
+
+    UI.component('switcher', {
+
+        defaults: {
+            connect   : false,
+            toggle    : ">*",
+            active    : 0,
+            animation : false,
+            duration  : 200
+        },
+
+        animating: false,
+
+        boot: function() {
+
+            // init code
+            UI.ready(function(context) {
+
+                UI.$("[data-@-switcher]", context).each(function() {
+                    var switcher = UI.$(this);
+
+                    if (!switcher.data("switcher")) {
+                        var obj = UI.switcher(switcher, UI.Utils.options(switcher.attr("data-@-switcher")));
+                    }
+                });
+            });
+        },
+
+        init: function() {
+
+            var $this = this;
+
+            this.on("click", this.options.toggle, function(e) {
+                e.preventDefault();
+                $this.show(this);
+            });
+
+            if (this.options.connect) {
+
+                this.connect = UI.$(this.options.connect);
+
+                this.connect.find(".@-active").removeClass(".@-active");
+
+                // delegate switch commands within container content
+                if (this.connect.length) {
+
+                    this.connect.on("click", '[data-@-switcher-item]', function(e) {
+
+                        e.preventDefault();
+
+                        var item = UI.$(this).data(UI._prefix+'SwitcherItem');
+
+                        if ($this.index == item) return;
+
+                        switch(item) {
+                            case 'next':
+                            case 'previous':
+                                $this.show($this.index + (item=='next' ? 1:-1));
+                                break;
+                            default:
+                                $this.show(item);
+                        }
+                    });
+                }
+
+                var toggles = this.find(this.options.toggle),
+                    active  = toggles.filter(".@-active");
+
+                if (active.length) {
+                    this.show(active, false);
+                } else {
+
+                    if (this.options.active===false) return;
+
+                    active = toggles.eq(UI.prefix(this.options.active));
+                    this.show(active.length ? active : toggles.eq(0), false);
+                }
+            }
+
+        },
+
+        show: function(tab, animate) {
+
+            if (this.animating) {
+                return;
+            }
+
+            if (isNaN(tab)) {
+                tab = UI.$(tab);
+            } else {
+
+                var togglers = this.find(this.options.toggle);
+
+                tab = tab < 0 ? togglers.length-1 : tab;
+                tab = togglers.eq(togglers[tab] ? tab : 0);
+            }
+
+            var $this     = this,
+                active    = UI.$(tab),
+                animation = Animations[this.options.animation] || function(current, next) {
+
+                    if (!$this.options.animation) {
+                        return Animations.none.apply($this);
+                    }
+
+                    var anim = $this.options.animation.split(',');
+
+                    if (anim.length == 1) {
+                        anim[1] = anim[0];
+                    }
+
+                    anim[0] = anim[0].trim();
+                    anim[1] = anim[1].trim();
+
+                    return coreAnimation.apply($this, [anim, current, next]);
+                };
+
+            if (animate===false) {
+                animation = Animations.none;
+            }
+
+            if (active.hasClass("@-disabled")) return;
+
+            this.find(this.options.toggle).filter(".@-active").removeClass("@-active");
+            active.addClass("@-active");
+
+            if (this.options.connect && this.connect.length) {
+
+                this.index = this.find(this.options.toggle).index(active);
+
+                if (this.index == -1 ) {
+                    this.index = 0;
+                }
+
+                this.connect.each(function() {
+
+                    var container = UI.$(this),
+                        children  = UI.$(container.children()),
+                        current   = UI.$(children.filter('.@-active')),
+                        next      = UI.$(children.eq($this.index));
+
+                        $this.animating = true;
+
+                        animation.apply($this, [current, next]).then(function(){
+
+                            current.removeClass("@-active");
+                            next.addClass("@-active");
+                            UI.Utils.checkDisplay(next, true);
+
+                            $this.animating = false;
+                        });
+                });
+            }
+
+            this.trigger("show.uk.switcher", [active]);
+        }
+    });
+
+    Animations = {
+
+        'none': function() {
+            var d = $.Deferred();
+            d.resolve();
+            return d.promise();
+        },
+
+        'fade': function(current, next) {
+            return coreAnimation.apply(this, ['@-animation-fade', current, next]);
+        },
+
+        'slide-bottom': function(current, next) {
+            return coreAnimation.apply(this, ['@-animation-slide-bottom', current, next]);
+        },
+
+        'slide-top': function(current, next) {
+            return coreAnimation.apply(this, ['@-animation-slide-top', current, next]);
+        },
+
+        'slide-vertical': function(current, next, dir) {
+
+            var anim = ['@-animation-slide-top', '@-animation-slide-bottom'];
+
+            if (current && current.index() > next.index()) {
+                anim.reverse();
+            }
+
+            return coreAnimation.apply(this, [anim, current, next]);
+        },
+
+        'slide-left': function(current, next) {
+            return coreAnimation.apply(this, ['@-animation-slide-left', current, next]);
+        },
+
+        'slide-right': function(current, next) {
+            return coreAnimation.apply(this, ['@-animation-slide-right', current, next]);
+        },
+
+        'slide-horizontal': function(current, next, dir) {
+
+            var anim = ['@-animation-slide-left', '@-animation-slide-right'];
+
+            if (current && current.index() > next.index()) {
+                anim.reverse();
+            }
+
+            return coreAnimation.apply(this, [anim, current, next]);
+        },
+
+        'scale': function(current, next) {
+            return coreAnimation.apply(this, ['@-animation-scale-up', current, next]);
+        }
+    };
+
+    UI.switcher.animations = Animations;
+
+
+    // helpers
+
+    function coreAnimation(cls, current, next) {
+
+        var d = $.Deferred(), clsIn = UI.prefix(cls), clsOut = cls, release;
+
+        if (next[0]===current[0]) {
+            d.resolve();
+            return d.promise();
+        }
+
+        if (typeof(cls) == 'object') {
+            clsIn  = cls[0];
+            clsOut = cls[1] || cls[0];
+        }
+
+        release = function() {
+
+            if (current) current.hide().removeClass(UI.prefix('@-active '+clsOut+' @-animation-reverse'));
+
+            next.addClass(clsIn).one(UI.support.animation.end, function() {
+
+                next.removeClass(''+clsIn+'').css({opacity:'', display:''});
+
+                d.resolve();
+
+                if (current) current.css({opacity:'', display:''});
+
+            }.bind(this)).show();
+        };
+
+        next.css('animation-duration', this.options.duration+'ms');
+
+        if (current && current.length) {
+
+            current.css('animation-duration', this.options.duration+'ms');
+
+            current.css('display', 'none').addClass(UI.prefix(clsOut+' @-animation-reverse')).one(UI.support.animation.end, function() {
+                release();
+            }.bind(this)).css('display', '');
+
+        } else {
+            next.addClass('@-active');
+            release();
+        }
+
+        return d.promise();
+    }
+
+})(jQuery, UIkit);
+
+(function($, UI) {
+
+    "use strict";
+
+
+    UI.component('tab', {
+
+        defaults: {
+            'target'    : '>li:not(.@-tab-responsive, .@-disabled)',
+            'connect'   : false,
+            'active'    : 0,
+            'animation' : false,
+            'duration'  : 200
+        },
+
+        boot: function() {
+
+            // init code
+            UI.ready(function(context) {
+
+                UI.$("[data-@-tab]", context).each(function() {
+
+                    var tab = UI.$(this);
+
+                    if (!tab.data("tab")) {
+                        var obj = UI.tab(tab, UI.Utils.options(tab.attr("data-@-tab")));
+                    }
+                });
+            });
+        },
+
+        init: function() {
+
+            var $this = this;
+
+            this.on("click", this.options.target, function(e) {
+                e.preventDefault();
+                $this.find($this.options.target).not(this).removeClass(UI.prefix("@-active")).blur();
+                $this.trigger("change.uk.tab", [UI.$(this).addClass("@-active")]);
+            });
+
+            if (this.options.connect) {
+                this.connect = $(this.options.connect);
+            }
+
+            // init responsive tab
+            this.responsivetab = UI.$('<li class="@-tab-responsive @-active"><a></a></li>').append(UI.prefix('<div class="@-dropdown @-dropdown-small"><ul class="@-nav @-nav-dropdown"></ul><div>'));
+
+            this.responsivetab.dropdown = this.responsivetab.find('.@-dropdown');
+            this.responsivetab.lst      = this.responsivetab.dropdown.find('ul');
+            this.responsivetab.caption  = this.responsivetab.find('a:first');
+
+            if (this.element.hasClass("@-tab-bottom")) this.responsivetab.dropdown.addClass("@-dropdown-up");
+
+            // handle click
+            this.responsivetab.lst.on('click', 'a', function(e) {
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                var link = $(this);
+
+                $this.element.children(':not(.@-tab-responsive)').eq(link.data('index')).trigger('click');
+            });
+
+            this.on('show.uk.switcher change.uk.tab', function(e, tab) {
+                $this.responsivetab.caption.html(tab.text());
+            });
+
+            this.element.append(this.responsivetab);
+
+            // init UIkit components
+            if (this.options.connect) {
+                UI.switcher(this.element, {
+                    "toggle"    : ">li:not(.@-tab-responsive)",
+                    "connect"   : this.options.connect,
+                    "active"    : this.options.active,
+                    "animation" : this.options.animation,
+                    "duration"  : this.options.duration
+                });
+            }
+
+            UI.dropdown(this.responsivetab, {"mode": "click"});
+
+            // init
+            $this.trigger("change.uk.tab", [this.element.find(this.options.target).filter('.@-active')]);
+
+            this.check();
+
+            UI.$win.on('resize orientationchange', UI.Utils.debounce(function(){
+                if ($this.element.is(":visible"))  $this.check();
+            }, 100));
+
+            this.on('display.uk.check', function(){
+                if ($this.element.is(":visible"))  $this.check();
+            });
+        },
+
+        check: function() {
+
+            var children = this.element.children(':not(.@-tab-responsive)').removeClass('@-hidden');
+
+            if (!children.length) return;
+
+            var top          = (children.eq(0).offset().top + Math.ceil(children.eq(0).height()/2)),
+                doresponsive = false,
+                item, link;
+
+            this.responsivetab.lst.empty();
+
+            children.each(function(){
+
+                if ($(this).offset().top > top) {
+                    doresponsive = true;
+                }
+            });
+
+            if (doresponsive) {
+
+                for (var i = 0; i < children.length; i++) {
+
+                    item = UI.$(children.eq(i));
+                    link = item.find('a');
+
+                    if (item.css('float') != 'none' && !item.attr('@-dropdown')) {
+
+                        item.addClass('@-hidden');
+
+                        if (!item.hasClass('@-disabled')) {
+                            this.responsivetab.lst.append('<li><a href="'+link.attr('href')+'" data-index="'+i+'">'+link.html()+'</a></li>');
+                        }
+                    }
+                }
+            }
+
+            this.responsivetab[this.responsivetab.lst.children().length ? 'removeClass':'addClass']('@-hidden');
+        }
+    });
+
+})(jQuery, UIkit);
+
+(function($, UI) {
 
     "use strict";
 
     var $tooltip,   // tooltip container
-        tooltipdelay;
+        tooltipdelay, checkdelay;
 
     UI.component('tooltip', {
 
@@ -1960,17 +2940,31 @@
             "pos": "top",
             "animation": false,
             "delay": 0, // in miliseconds
+            "cls": "",
             "src": function() { return this.attr("title"); }
         },
 
         tip: "",
+
+        boot: function() {
+
+            // init code
+            UI.$html.on("mouseenter.tooltip.uikit focus.tooltip.uikit", "[data-@-tooltip]", function(e) {
+                var ele = UI.$(this);
+
+                if (!ele.data("tooltip")) {
+                    var obj = UI.tooltip(ele, UI.Utils.options(ele.attr("data-@-tooltip")));
+                    ele.trigger("mouseenter");
+                }
+            });
+        },
 
         init: function() {
 
             var $this = this;
 
             if (!$tooltip) {
-                $tooltip = $('<div class="uk-tooltip"></div>').appendTo("body");
+                $tooltip = UI.$('<div class="@-tooltip"></div>').appendTo("body");
             }
 
             this.on({
@@ -1989,13 +2983,13 @@
         show: function() {
 
             if (tooltipdelay)     clearTimeout(tooltipdelay);
+            if (checkdelay)       clearTimeout(checkdelay);
             if (!this.tip.length) return;
 
             $tooltip.stop().css({"top": -2000, "visibility": "hidden"}).show();
-            $tooltip.html('<div class="uk-tooltip-inner">' + this.tip + '</div>');
+            $tooltip.html(UI.prefix('<div class="@-tooltip-inner">') + this.tip + '</div>');
 
             var $this      = this,
-                bodyoffset = $('body').offset(),
                 pos        = $.extend({}, this.element.offset(), {width: this.element[0].offsetWidth, height: this.element[0].offsetHeight}),
                 width      = $tooltip[0].offsetWidth,
                 height     = $tooltip[0].offsetHeight,
@@ -2003,18 +2997,26 @@
                 position   = typeof(this.options.pos) === "function" ? this.options.pos.call(this.element) : this.options.pos,
                 tmppos     = position.split("-"),
                 tcss       = {
-                    "display": "none",
-                    "visibility": "visible",
-                    "top": (pos.top + pos.height + height),
-                    "left": pos.left
+                    "display"    : "none",
+                    "visibility" : "visible",
+                    "top"        : (pos.top + pos.height + height),
+                    "left"       : pos.left
                 };
+
 
             // prevent strange position
             // when tooltip is in offcanvas etc.
-            pos.left -= bodyoffset.left;
-            pos.top  -= bodyoffset.top;
+            if ($('html').css('position')=='fixed' || $('body').css('position')=='fixed'){
+                var bodyoffset = UI.$('body').offset(),
+                    htmloffset = UI.$('html').offset(),
+                    docoffset  = {'top': (htmloffset.top + bodyoffset.top), 'left': (htmloffset.left + bodyoffset.left)};
 
-            if ((tmppos[0] == "left" || tmppos[0] == "right") && $.UIkit.langdirection == 'right') {
+                pos.left -= docoffset.left;
+                pos.top  -= docoffset.top;
+            }
+
+
+            if ((tmppos[0] == "left" || tmppos[0] == "right") && UI.langdirection == 'right') {
                 tmppos[0] = tmppos[0] == "left" ? "right" : "left";
             }
 
@@ -2076,7 +3078,7 @@
 
             tooltipdelay = setTimeout(function(){
 
-                $tooltip.css(tcss).attr("class", "uk-tooltip uk-tooltip-" + position);
+                $tooltip.css(tcss).attr("class", UI.prefix(["@-tooltip", "@-tooltip-"+position, $this.options.cls].join(' ')));
 
                 if ($this.options.animation) {
                     $tooltip.css({opacity: 0, display: 'block'}).animate({opacity: 1}, parseInt($this.options.animation, 10) || 400);
@@ -2085,6 +3087,12 @@
                 }
 
                 tooltipdelay = false;
+
+                // close tooltip if element was removed or hidden
+                checkdelay = setInterval(function(){
+                    if(!$this.element.is(':visible')) $this.hide();
+                }, 150);
+
             }, parseInt(this.options.delay, 10) || 0);
         },
 
@@ -2092,6 +3100,7 @@
             if(this.element.is("input") && this.element[0]===document.activeElement) return;
 
             if(tooltipdelay) clearTimeout(tooltipdelay);
+            if (checkdelay)  clearTimeout(checkdelay);
 
             $tooltip.stop();
 
@@ -2110,11 +3119,11 @@
 
             var axis = "";
 
-            if(left < 0 || ((left-$win.scrollLeft())+width) > window.innerWidth) {
+            if(left < 0 || ((left - UI.$win.scrollLeft())+width) > window.innerWidth) {
                axis += "x";
             }
 
-            if(top < 0 || ((top-$win.scrollTop())+height) > window.innerHeight) {
+            if(top < 0 || ((top - UI.$win.scrollTop())+height) > window.innerHeight) {
                axis += "y";
             }
 
@@ -2122,452 +3131,4 @@
         }
     });
 
-
-    // init code
-    $(document).on("mouseenter.tooltip.uikit focus.tooltip.uikit", "[data-uk-tooltip]", function(e) {
-        var ele = $(this);
-
-        if (!ele.data("tooltip")) {
-            var obj = UI.tooltip(ele, UI.Utils.options(ele.attr("data-uk-tooltip")));
-            ele.trigger("mouseenter");
-        }
-    });
-
-})(jQuery, jQuery.UIkit, jQuery(window));
-
-(function($, UI) {
-
-    "use strict";
-
-    UI.component('switcher', {
-
-        defaults: {
-            connect : false,
-            toggle  : ">*",
-            active  : 0
-        },
-
-        init: function() {
-
-            var $this = this;
-
-            this.on("click", this.options.toggle, function(e) {
-                e.preventDefault();
-                $this.show(this);
-            });
-
-            if (this.options.connect) {
-
-                this.connect = $(this.options.connect).find(".uk-active").removeClass(".uk-active").end();
-
-                var toggles = this.find(this.options.toggle),
-                    active   = toggles.filter(".uk-active");
-
-                if (active.length) {
-                    this.show(active);
-                } else {
-                    active = toggles.eq(this.options.active);
-                    this.show(active.length ? active : toggles.eq(0));
-                }
-            }
-
-        },
-
-        show: function(tab) {
-
-            tab = isNaN(tab) ? $(tab) : this.find(this.options.toggle).eq(tab);
-
-            var active = tab;
-
-            if (active.hasClass("uk-disabled")) return;
-
-            this.find(this.options.toggle).filter(".uk-active").removeClass("uk-active");
-            active.addClass("uk-active");
-
-            if (this.options.connect && this.connect.length) {
-
-                var index = this.find(this.options.toggle).index(active);
-
-                this.connect.children().removeClass("uk-active").eq(index).addClass("uk-active");
-            }
-
-            this.trigger("uk.switcher.show", [active]);
-            $(document).trigger("uk-check-display");
-        }
-    });
-
-
-    // init code
-    $(document).on("uk-domready", function(e) {
-        $("[data-uk-switcher]").each(function() {
-            var switcher = $(this);
-
-            if (!switcher.data("switcher")) {
-                var obj = UI.switcher(switcher, UI.Utils.options(switcher.attr("data-uk-switcher")));
-            }
-        });
-    });
-
-})(jQuery, jQuery.UIkit);
-
-(function($, UI) {
-
-    "use strict";
-
-
-    UI.component('tab', {
-
-        defaults: {
-            connect: false,
-            active: 0
-        },
-
-        init: function() {
-
-            var $this = this;
-
-            this.on("click", this.options.target, function(e) {
-                e.preventDefault();
-                $this.find($this.options.target).not(this).removeClass("uk-active").blur();
-                $this.trigger("change", [$(this).addClass("uk-active")]);
-            });
-
-
-            if (this.options.connect) {
-                this.connect = $(this.options.connect);
-            }
-
-            if (location.hash && location.hash.match(/^#[a-z0-9_-]+$/)) {
-                var active = this.element.children().filter(window.location.hash);
-
-                if (active.length) {
-                    this.element.children().removeClass('uk-active').filter(active).addClass("uk-active");
-                }
-            }
-
-            var mobiletab = $('<li class="uk-tab-responsive uk-active"><a href="javascript:void(0);"></a></li>'),
-                caption   = mobiletab.find("a:first"),
-                dropdown  = $('<div class="uk-dropdown uk-dropdown-small"><ul class="uk-nav uk-nav-dropdown"></ul><div>'),
-                ul        = dropdown.find("ul");
-
-            caption.html(this.find("li.uk-active:first").find("a").text());
-
-            if (this.element.hasClass("uk-tab-bottom")) dropdown.addClass("uk-dropdown-up");
-            if (this.element.hasClass("uk-tab-flip")) dropdown.addClass("uk-dropdown-flip");
-
-            this.find("a").each(function(i) {
-
-                var tab  = $(this).parent(),
-                    item = $('<li><a href="javascript:void(0);">' + tab.text() + '</a></li>').on("click", function(e) {
-                        $this.element.data("switcher").show(i);
-                    });
-
-                if (!$(this).parents(".uk-disabled:first").length) ul.append(item);
-            });
-
-            this.element.uk("switcher", {"toggle": ">li:not(.uk-tab-responsive)", "connect": this.options.connect, "active": this.options.active});
-
-            mobiletab.append(dropdown).uk("dropdown", {"mode": "click"});
-
-            this.element.append(mobiletab).data({
-                "dropdown": mobiletab.data("dropdown"),
-                "mobilecaption": caption
-            }).on("uk.switcher.show", function(e, tab) {
-                mobiletab.addClass("uk-active");
-                caption.html(tab.find("a").text());
-            });
-
-        }
-    });
-
-    $(document).on("uk-domready", function(e) {
-
-        $("[data-uk-tab]").each(function() {
-            var tab = $(this);
-
-            if (!tab.data("tab")) {
-                var obj = UI.tab(tab, UI.Utils.options(tab.attr("data-uk-tab")));
-            }
-        });
-    });
-
-})(jQuery, jQuery.UIkit);
-
-(function($, UI) {
-
-    "use strict";
-
-    var $win           = $(window),
-        $doc           = $(document),
-        scrollspies    = [],
-        checkScrollSpy = function() {
-            for(var i=0; i < scrollspies.length; i++) {
-                UI.support.requestAnimationFrame.apply(window, [scrollspies[i].check]);
-            }
-        };
-
-    UI.component('scrollspy', {
-
-        defaults: {
-            "cls"        : "uk-scrollspy-inview",
-            "initcls"    : "uk-scrollspy-init-inview",
-            "topoffset"  : 0,
-            "leftoffset" : 0,
-            "repeat"     : false,
-            "delay"      : 0
-        },
-
-        init: function() {
-
-            var $this = this, idle, inviewstate, initinview,
-                fn = function(){
-
-                    var inview = UI.Utils.isInView($this.element, $this.options);
-
-                    if(inview && !inviewstate) {
-
-                        if(idle) clearTimeout(idle);
-
-                        if(!initinview) {
-                            $this.element.addClass($this.options.initcls);
-                            $this.offset = $this.element.offset();
-                            initinview = true;
-
-                            $this.trigger("uk.scrollspy.init");
-                        }
-
-                        idle = setTimeout(function(){
-
-                            if(inview) {
-                                $this.element.addClass("uk-scrollspy-inview").addClass($this.options.cls).width();
-                            }
-                        }, $this.options.delay);
-
-                        inviewstate = true;
-                        $this.trigger("uk.scrollspy.inview");
-                    }
-
-                    if (!inview && inviewstate && $this.options.repeat) {
-                        $this.element.removeClass("uk-scrollspy-inview").removeClass($this.options.cls);
-                        inviewstate = false;
-
-                        $this.trigger("uk.scrollspy.outview");
-                    }
-                };
-
-            fn();
-
-            this.check = fn;
-            scrollspies.push(this);
-        }
-    });
-
-
-    var scrollspynavs = [],
-        checkScrollSpyNavs = function() {
-            for(var i=0; i < scrollspynavs.length; i++) {
-                UI.support.requestAnimationFrame.apply(window, [scrollspynavs[i].check]);
-            }
-        };
-
-    UI.component('scrollspynav', {
-
-        defaults: {
-            "cls"          : 'uk-active',
-            "closest"      : false,
-            "topoffset"    : 0,
-            "leftoffset"   : 0,
-            "smoothscroll" : false
-        },
-
-        init: function() {
-
-            var ids     = [],
-                links   = this.find("a[href^='#']").each(function(){ ids.push($(this).attr("href")); }),
-                targets = $(ids.join(","));
-
-            var $this = this, inviews, fn = function(){
-
-                inviews = [];
-
-                for(var i=0 ; i < targets.length ; i++) {
-                    if(UI.Utils.isInView(targets.eq(i), $this.options)) {
-                        inviews.push(targets.eq(i));
-                    }
-                }
-
-                if(inviews.length) {
-
-                    var scrollTop = $win.scrollTop(),
-                        target = (function(){
-                            for(var i=0; i< inviews.length;i++){
-                                if(inviews[i].offset().top >= scrollTop){
-                                    return inviews[i];
-                                }
-                            }
-                        })();
-
-                    if(!target) return;
-
-                    if($this.options.closest) {
-                        links.closest($this.options.closest).removeClass($this.options.cls).end().filter("a[href='#"+target.attr("id")+"']").closest($this.options.closest).addClass($this.options.cls);
-                    } else {
-                        links.removeClass($this.options.cls).filter("a[href='#"+target.attr("id")+"']").addClass($this.options.cls);
-                    }
-                }
-            };
-
-            if(this.options.smoothscroll && UI["smoothScroll"]) {
-                links.each(function(){
-                    UI.smoothScroll(this, $this.options.smoothscroll);
-                });
-            }
-
-            fn();
-
-            this.element.data("scrollspynav", this);
-
-            this.check = fn;
-            scrollspynavs.push(this);
-
-        }
-    });
-
-
-    var fnCheck = function(){
-        checkScrollSpy();
-        checkScrollSpyNavs();
-    };
-
-    // listen to scroll and resize
-    $doc.on("uk-scroll", fnCheck);
-    $win.on("resize orientationchange", UI.Utils.debounce(fnCheck, 50));
-
-    // init code
-    $doc.on("uk-domready", function(e) {
-        $("[data-uk-scrollspy]").each(function() {
-
-            var element = $(this);
-
-            if (!element.data("scrollspy")) {
-                var obj = UI.scrollspy(element, UI.Utils.options(element.attr("data-uk-scrollspy")));
-            }
-        });
-
-        $("[data-uk-scrollspy-nav]").each(function() {
-
-            var element = $(this);
-
-            if (!element.data("scrollspynav")) {
-                var obj = UI.scrollspynav(element, UI.Utils.options(element.attr("data-uk-scrollspy-nav")));
-            }
-        });
-    });
-
-})(jQuery, jQuery.UIkit);
-
-(function($, UI) {
-
-    "use strict";
-
-    UI.component('smoothScroll', {
-
-        defaults: {
-            duration: 1000,
-            transition: 'easeOutExpo',
-            offset: 0,
-            complete: function(){}
-        },
-
-        init: function() {
-
-            var $this = this;
-
-            this.on("click", function(e) {
-
-                // get / set parameters
-                var ele       = ($(this.hash).length ? $(this.hash) : $("body")),
-                    target    = ele.offset().top - $this.options.offset,
-                    docheight = $(document).height(),
-                    winheight = $(window).height(),
-                    eleheight = ele.outerHeight();
-
-                if ((target + winheight) > docheight) {
-                    target = docheight - winheight;
-                }
-
-                // animate to target, fire callback when done
-                $("html,body").stop().animate({scrollTop: target}, $this.options.duration, $this.options.transition).promise().done($this.options.complete);
-
-                // cancel default click action
-                return false;
-            });
-
-        }
-    });
-
-    if (!$.easing['easeOutExpo']) {
-        $.easing['easeOutExpo'] = function(x, t, b, c, d) { return (t == d) ? b + c : c * (-Math.pow(2, -10 * t / d) + 1) + b; };
-    }
-
-    // init code
-    $(document).on("click.smooth-scroll.uikit", "[data-uk-smooth-scroll]", function(e) {
-        var ele = $(this);
-
-        if (!ele.data("smoothScroll")) {
-            var obj = UI.smoothScroll(ele, UI.Utils.options(ele.attr("data-uk-smooth-scroll")));
-            ele.trigger("click");
-        }
-
-        return false;
-    });
-
-})(jQuery, jQuery.UIkit);
-
-
-(function(global, $, UI){
-
-
-    UI.component('toggle', {
-
-        defaults: {
-            target: false,
-            cls: 'uk-hidden'
-        },
-
-        init: function() {
-
-            var $this = this;
-
-            this.totoggle = this.options.target ? $(this.options.target):[];
-
-            this.on("click", function(e) {
-                if ($this.element.is('a[href="#"]')) e.preventDefault();
-                $this.toggle();
-            });
-        },
-
-        toggle: function() {
-
-            if(!this.totoggle.length) return;
-
-            this.totoggle.toggleClass(this.options.cls);
-
-            if(this.options.cls == 'uk-hidden') {
-                $(document).trigger("uk-check-display");
-            }
-        }
-    });
-
-    $(document).on("uk-domready", function(e) {
-
-        $("[data-uk-toggle]").each(function() {
-            var ele = $(this);
-
-            if (!ele.data("toggle")) {
-               var obj = UI.toggle(ele, UI.Utils.options(ele.attr("data-uk-toggle")));
-            }
-        });
-    });
-
-})(this, jQuery, jQuery.UIkit);
+})(jQuery, UIkit);

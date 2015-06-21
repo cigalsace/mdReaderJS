@@ -2,8 +2,8 @@
 var app = {
     title: 'mdReaderJS',        // Titre de l'application
     name: 'mdReaderJS',         // Nom de l'application
-    version: 0.01,              // Version de l'application
-    template: 'content2.html'   // Template de présentationd e la fiche de métadonnées
+    version: 0.03,              // Version de l'application
+    template: 'content3.html'   // Template de présentationd e la fiche de métadonnées
 };
 
 // Lien vers le serveur de récupération des flux (pb de cross domain)
@@ -22,6 +22,10 @@ if (query.indexOf('?') != -1) {
 for (i in params) {
     v = params[i].split('=');
     url_vars[v[0]] = decodeURIComponent(v[1]);
+}
+// Ecraser la valeur du template avec le paramètre d'URL 'tpl'
+if (url_vars['tpl']) {
+    app.template = url_vars['tpl'];
 }
 
 // Configuration par défaut de l'url du CSW
@@ -165,7 +169,7 @@ var lb = {
         Data_Keywords_label: 'Mot-clés',
         Data_Keywords_description: 'Liste des mot-clés décrivant les données',
         
-        // Extent
+        // GeographicExtent
         Data_ExtentName_label: 'Nom de l\'emprise',
         Data_ExtentName_description: '',
     	Data_ExtentNorthbound_label: 'Latitude Nord',
@@ -176,6 +180,14 @@ var lb = {
         Data_ExtentEastbound_description: '',
         Data_ExtentWestbound_label: 'Longitude Ouest',
         Data_ExtentWestbound_description: '',
+        
+        // TemporalExtent
+        Data_TempExtentName_label: 'Description',
+        Data_TempExtentName_description: 'Nom de l\'étendue temporelle',
+    	Data_TempExtentBegin_label: 'Début',
+    	Data_TempExtentBegin_description: 'Début',
+        Data_TempExtentEnd_label: 'Fin',
+        Data_TempExtentEnd_description: 'Fin',
         
     }
 };

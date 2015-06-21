@@ -14,7 +14,7 @@ var MD_TopicCategoryCode = {
     climatologyMeteorologyAtmosphere: "Climatologie, météorologie", 
     economy: "Economie", 
     elevation: "Topographie", 
-    environnement: "Ressources et gestion de l’environnement", 
+    environment: "Ressources et gestion de l’environnement", 
     geoscientificInformation: "Géosciences", 
     health: "Santé", 
     imageryBaseMapsEarthCover: "Carte de référence de la couverture terrestre", 

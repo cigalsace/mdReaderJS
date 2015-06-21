@@ -1,0 +1,7 @@
+mdReaderJS
+
+# v. 0.03:
+
+21/01/15:
+    - Ajout de la possibilité d'utiliser le paramètre 'tpl' dans l'URL pour définiri le template (ex.: tpl=content2.html)
+    - Ajout de la possibilité d'accéder au document XML (en réalité le résultét du getRecordById)

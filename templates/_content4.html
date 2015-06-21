@@ -1,0 +1,314 @@
+<script id="tpl_content" type="text/html" >
+    
+    <div id="menu" style="position:absolute; top:20px; right:-220px; width:200px;">
+        <div style="position:fixed;" class="uk-panel uk-panel-box" data-uk-sticky="{top:35}">
+                    <h3 class="uk-panel-title uk-h4">Accès rapides</h3>
+                    <ul class="uk-nav uk-nav-side" data-uk-scrollspy-nav="{closest:'li', smoothscroll:true}">
+                        <li class="uk-nav-header">Découvrir les données</li>
+                        <li class=""><a href="#data_dates">Dates</a></li>
+                        <li class=""><a href="#data_keywords">Mots-clés</a></li>
+                        <li class=""><a href="#data_extents">Emprise des données</a></li>
+                        <li class="uk-nav-header">Analyser les données</li>
+                        <li class=""><a href="#data_spatialinfos">Informations spatiales</a></li>
+                        <li class=""><a href="#data_quality">Qualité des données</a></li>
+                        <li class=""><a href="#data_sup">Informations complémentaires</a></li>
+                        <li class="uk-nav-header">Accéder aux données</li>
+                        <li class=""><a href="#data_limits">Limites et contraintes d'accès et d'usage</a></li>
+                        <li class=""><a href="#data_distformat">Formats de diffusion</a></li>
+                        <li class=""><a href="#data_linkages">Liens vers les données et ressources associées</a></li>
+                        <li class=""><a href="#data_contacts">Contacts pour les données</a></li>
+                        <li class="uk-nav-header">Informations sur la fiche</li>
+                        <li class=""><a href="#md_infos">Infos sur la fiche</a></li>
+                        <li class=""><a href="#md_contacts">Contacts pour les métadonnées</a></li>
+                        <li class="uk-nav-divider"></li>
+                        <li class=""><a href="#faq"><i class="uk-icon-info-circle uk-margin-small-right"></i>FAQ</a></li>
+                    </ul>
+            <!--
+            <ul class="uk-nav uk-nav-side">
+                <li><a href="#data_title" data-uk-smooth-scroll="{offset: 10}">
+                    <i class="uk-icon-caret-right"></i>
+                    Titre et résumé</a></li>
+                <li class="uk-nav-header">Découvrir les données</li>
+                <li><a href="#data_dates" data-uk-smooth-scroll="{offset: 30}"><i class="uk-icon-caret-right"></i> Dates</a></li>
+                <li><a href="#data_keywords" data-uk-smooth-scroll="{offset: 30}"><i class="uk-icon-caret-right"></i> Mot-clés</a></li>
+                <li><a href="#data_extent" data-uk-smooth-scroll="{offset: 30}"><i class="uk-icon-caret-right"></i> Emprise des données</a></li>
+                <li class="uk-nav-header">Analyser les données</li>
+                <li><a href="#data_spatialinfos" data-uk-smooth-scroll="{offset: 30}"><i class="uk-icon-caret-right"></i> Informations spatiales</a></li>
+                <li><a href="#data_quality" data-uk-smooth-scroll="{offset: 30}"><i class="uk-icon-caret-right"></i> Texte sur la qualité</a></li>
+                <li><a href="#data_sup" data-uk-smooth-scroll="{offset: 30}"><i class="uk-icon-caret-right"></i> Informations complémentaires</a></li>
+                <li class="uk-nav-header">Accéder aux données</li>
+                <li><a href="#data_limits" data-uk-smooth-scroll="{offset: 30}"><i class="uk-icon-caret-right"></i> Limites et contraintes d'accès et d'usage</a></li>
+                <li><a href="#data_distformat" data-uk-smooth-scroll="{offset: 30}"><i class="uk-icon-caret-right"></i> Formats de diffusion</a></li>
+                <li><a href="#data_linkages" data-uk-smooth-scroll="{offset: 30}"><i class="uk-icon-caret-right"></i> Liens vers les donénes ressources associées</a></li>
+                <li class="uk-nav-header">Contacts</li>
+                <li><a href="#data_contacts" data-uk-smooth-scroll="{offset: 30}"><i class="uk-icon-caret-right"></i> Contacts pour les données</a></li>
+                <li class="uk-nav-header">Informations sur la fiche</li>
+                <li><a href="#md_infos" data-uk-smooth-scroll="{offset: 30}"><i class="uk-icon-caret-right"></i> Informations sur la fiche de métadonnées</a></li>
+                <li><a href="#md_contacts" data-uk-smooth-scroll="{offset: 30}"><i class="uk-icon-caret-right"></i> Contacts pour les métadonnées</a></li>
+            </ul>
+            -->
+        </div>
+    </div>
+
+    <h1 id="data_title" class="uk-h2"><b>{{md.Data_Title}}</b></h1>
+        <pre id="data_abstract" class="uk-h5">{{#md.Data_BrowseGraphics}}<img class="uk-align-left uk-margin-top" src="{{Data_BrowseGraphic_Name}}" alt="{{Data_BrowseGraphic_Description}}" title="{{Data_BrowseGraphic_Description}}" style="width:200px; max-height:200px; max-width:200px;">{{/md.Data_BrowseGraphics}}<code>{{md.Data_Abstract}}</code></pre>
+    
+    <h3 id="data_dates" class="uk-h4">Dates</h3>
+    <div>
+        {{#md.Data_Dates.DateCreation}}
+            <label>{{lb.DateCreation_label}}:</label>
+                <span><code>{{md.Data_Dates.DateCreation}}</code> ({{lb.DateCreation_description}})</span><br />
+        {{/md.Data_Dates.DateCreation}}
+        {{#md.Data_Dates.DatePublication}}
+            <label>{{lb.DatePublication_label}}:</label>
+                <span><code>{{md.Data_Dates.DatePublication}}</code> ({{lb.DatePublication_description}})</span><br />
+        {{/md.Data_Dates.DatePublication}}
+        {{#md.Data_Dates.DateRevision}}
+            <label>{{lb.DateRevision_label}}:</label>
+                <span><code>{{md.Data_Dates.DateRevision}}</code> ({{lb.DateRevision_description}})</span><br />
+        {{/md.Data_Dates.DateRevision}}
+    </div>
+    <label>{{lb.Data_MaintenanceFrequency_label}}:</label>
+        <span><code>{{md.Data_MaintenanceFrequency}}</code></span>
+    <hr />
+    
+    <h3 id="data_extent" class="uk-h4">Emprise géographique</h3>
+        <table class="uk-table">
+            <tr>
+                <td><strong>{{lb.Data_ExtentName_label}}</strong></td>
+                <td><strong>{{lb.Data_ExtentNorthbound_label}}</strong></td>
+                <td><strong>{{lb.Data_ExtentSouthbound_label}}</strong></td>
+                <td><strong>{{lb.Data_ExtentEastbound_label}}</strong></td>
+                <td><strong>{{lb.Data_ExtentWestbound_label}}</strong></td>
+            </tr>
+            {{#md.Data_GeographicExtents}}
+            <tr>
+                <td><code>{{Data_ExtentName}}</code></td>
+                <td><code>{{Data_ExtentNorthbound}}</code></td>
+                <td><code>{{Data_ExtentSouthbound}}</code></td>
+                <td><code>{{Data_ExtentEastbound}}</code></td>
+                <td><code>{{Data_ExtentWestbound}}</code></td>
+            </tr>
+            {{/md.Data_GeographicExtents}}
+        </table>
+    
+        <h3 id="data_spatialinfos" class="uk-h4">Informations spatiales</h3>
+        <label>{{lb.Data_SpatialRepresentationType_label}}:</label> 
+            <span><code>{{md.Data_SpatialRepresentationType}}</code> ({{lb.Data_SpatialRepresentationType_description}})</span><br />
+        {{#md.Data_ScaleDenominator}}
+            <label title="{{lb.Data_ScaleDenominator_description}}">{{lb.Data_ScaleDenominator_label}}:</label> 
+                <span><code>{{md.Data_ScaleDenominator}}</code></span><br />
+        {{/md.Data_ScaleDenominator}}
+        {{#md.Data_ScaleDistance}}
+            <label title="{{lb.Data_ScaleDistance_description}}">{{lb.Data_ScaleDistance_label}}:</label> 
+                <span><code>{{md.Data_ScaleDistance}}</code></span><br />
+        {{/md.Data_ScaleDistance}}
+    	<div>{{lb.Data_ReferenceSystemCode_label}}:
+    	    <ul>
+	    	{{#md.Data_ReferenceSystems}}
+	    		<li><code>{{Data_ReferenceSystemCode}}</code></li>
+	    	{{/md.Data_ReferenceSystems}}
+	    	</ul>
+    	</div>
+        <hr />
+
+    
+        <h3 id="data_distformat" class="uk-h4">Format de diffusion</h3>
+        <table class="uk-table">
+            <tr>
+                <td><strong>{{lb.Data_DistFormatName_label}}</strong></td>
+                <td><strong>{{lb.Data_DistFormatSpecification_label}}</strong></td>
+                <td><strong>{{lb.Data_DistFormatVersion_label}}</strong></td>
+            </tr>
+            {{#md.Data_DistFormats}}
+            <tr>
+                <td><code>{{Data_DistFormatName}}</code></td>
+                <td><code>{{Data_DistFormatSpecification}}</code></td>
+                <td><code>{{Data_DistFormatVersion}}</code></td>
+            </tr>
+            {{/md.Data_DistFormats}}
+            {{^md.Data_DistFormats}}
+                <tr>
+                    <td><code>{{lb.none}}</code></td>
+                    <td><code>{{lb.none}}</code></td>
+                    <td><code>{{lb.none}}</code></td>
+                </tr>
+            {{/md.Data_DistFormats}}
+        </table>
+
+    
+        <h3 id="data_quality" class="uk-h4">{{lb.Data_LI_Statement_label}}</h3>
+        <pre><code class="xml">{{md.Data_LI_Statement}}</code></pre>
+
+    
+        <h3 id="data_limits" class="uk-h4">Contraintes et limites légales d'accès</h3>
+        <label>{{lb.Data_Classification_label}}:</label> 
+        <span><code>{{md.Data_Classification}}</code></span><br />
+        <h4 class="uk-h5">Contraintes d'accès:</h4>
+        <ul>
+        {{#md.Data_AccessOtherConstraints}}
+            <li><code>{{Data_OtherConstraint}}</code></li>
+        {{/md.Data_AccessOtherConstraints}}
+        {{#md.Data_AccessRestrictionCodes}}
+            <li><code>{{Data_RestrictionCode}}</code></li>
+        {{/md.Data_AccessRestrictionCodes}}
+        {{^md.Data_AccessRestrictionCodes}}
+            <li>{{lb.none}}</li>
+        {{/md.Data_AccessRestrictionCodes}}
+        </ul>
+        <h4 class="uk-h5">Contraintes d'usage:</h4>
+        <ul>
+        {{#md.Data_UseOtherConstraints}}
+            <li><code>{{Data_OtherConstraint}}</code></li>
+        {{/md.Data_UseOtherConstraints}}
+        {{#md.Data_UseRestrictionCodes}}
+            <li><code>{{Data_RestrictionCode}}</code></li>
+        {{/md.Data_UseRestrictionCodes}}
+        {{^md.Data_UseRestrictionCodes}}
+            <li>{{lb.none}}</li>
+        {{/md.Data_UseRestrictionCodes}}
+        </ul>
+        <h4 class="uk-h5">{{lb.Data_UseLimitation_label}}:</h4>
+        <ul>
+        {{#md.Data_UseLimitations}}
+            <li><code>{{Data_UseLimitation}}</code></li>
+        {{/md.Data_UseLimitations}}
+        {{^md.Data_UseLimitations}}
+            <li>{{lb.none}}</li>
+        {{/md.Data_UseLimitations}}
+        </ul>
+
+    
+        <h3 id="data_linkages" class="uk-h4">Accès aux données et documents associés</h3>
+            {{#md.Data_Linkages}}
+<pre><label>{{lb.Data_LinkageName_label}}:</label> <strong>{{Data_LinkageName}}</strong>
+<label>{{lb.Data_LinkageDescription_label}}:</label> {{Data_LinkageDescription}}
+<label>{{lb.Data_LinkageURL_label}}:</label> <a href="{{Data_LinkageURL}}">{{Data_LinkageURL}}</a></pre>
+            {{/md.Data_Linkages}}
+            {{^md.Data_Linkages}}
+                <code>{{lb.none}}</code>
+                <code>{{lb.none}}</code>
+                <code>{{lb.none}}</code>
+            {{/md.Data_Linkages}}
+
+    
+        <h3 id="data_contacts" class="uk-h4">Contacts pour les données</h3>
+        {{#md.Data_PointOfContacts}}
+        <div class="uk-grid uk-panel uk-grid-small uk-panel-box" style="margin-left: 20px;">
+            <div class="uk-width-1-5">    
+                {{#CntLogo_url}}
+                    <div> 
+                        <img class="logo" src="{{CntLogo_url}}" alt="{{CntLogo}}" title="{{CntLogo}}" />
+                    </div>
+                {{/CntLogo_url}}
+            </div>
+            <div class="uk-width-2-5">    
+                {{#CntOrganism}}<div><strong>{{lb.CntOrganism_label}}: {{CntOrganism}}</strong></div>{{/CntOrganism}}
+                {{#CntName}}<div>{{lb.CntName_label}}: {{CntName}}</div>{{/CntName}}
+                {{#CntFunction}}<div>{{lb.CntFunction_label}}: {{CntFunction}}</div>{{/CntFunction}}
+            </div>
+            <div class="uk-width-2-5"> 
+                {{#CntAddress}}
+                    <div>{{lb.CntAddress_label}}: {{CntAddress}}, {{CntPostalCode}} {{CntCity}}</div>
+                {{/CntAddress}}
+                {{#CntPhone}}<div>{{lb.CntPhone_label}}: {{CntPhone}}</div>{{/CntPhone}}
+                {{#CntEmail}}<div>{{lb.CntEmail_label}}: <a href="mailto:{{CntEmail}}">{{CntEmail}}</a></div>{{/CntEmail}}
+                {{#CntRole}}<div>{{lb.CntRole_label}}: {{CntRole}}</div>{{/CntRole}}
+            </div>
+        </div>
+        {{/md.Data_PointOfContacts}}
+        <hr />
+
+    
+        <h3 id="data_keywords" class="uk-h4">Mots-clés</h3>
+        <label>{{lb.Data_TopicCategories_label}}:</label>
+            {{#md.Data_TopicCategories}}
+                <code>{{Data_TopicCategory}}</code> |
+            {{/md.Data_TopicCategories}}
+            {{^md.Data_TopicCategories}}
+                {{lb.none}}
+            {{/md.Data_TopicCategories}}
+        <br />
+        <div>
+            {{lb.Data_Keywords_label}}:
+            <ul>
+            {{#md.Data_Keywords}}
+                <li><code>{{Data_Keyword}}</code> (<code>{{Data_KeywordType}}</code> - <code>{{Data_ThesaurusName}}</code>)
+                    {{#Data_ThesaurusDates.DateCreation}}
+                    <div>{{lb.DateCreation_label}}: <code>{{Data_ThesaurusDates.DateCreation}}</code> ({{lb.DateCreation_description}})</div>
+                    {{/Data_ThesaurusDates.DateCreation}}
+                    {{#Data_ThesaurusDates.DatePublication}}
+                        <div>{{lb.DatePublication_label}}: <code>{{Data_ThesaurusDates.DatePublication}}</code> ({{lb.DatePublication_description}})</div>
+                    {{/Data_ThesaurusDates.DatePublication}}
+                    {{#Data_ThesaurusDates.DateRevision}}
+                        <div>{{lb.DateRevision_label}}: <code>{{Data_ThesaurusDates.DateRevision}}</code> ({{lb.DateRevision_description}})</div>
+                    {{/Data_ThesaurusDates.DateRevision}}
+                </li>
+            {{/md.Data_Keywords}}
+            </ul>
+            {{^md.Data_Keywords}}
+                {{lb.none}}
+            {{/md.Data_Keywords}}
+        </div>
+        <hr />
+
+    
+        <h3 id="data_sup" class="uk-h4">Informations complémentaires</h3>
+        <div>{{lb.Data_IdentifierCode_label}}</div>
+        <ul>
+            {{#md.Data_Identifiers}}
+                <li><code>{{Data_Code}}</code> (<code>{{Data_CodeSpace}}</code>)</li>
+            {{/md.Data_Identifiers}}
+        </ul>
+        
+        <label>{{lb.Data_Language_label}}:</label>
+            {{#md.Data_Languages}}
+                <code>{{Data_Language}}</code> |
+            {{/md.Data_Languages}}
+        <br />
+        <label>{{lb.Data_CharacterSet_label}}:</label>
+            <code>{{md.Data_CharacterSet}}</code><br />
+        <hr />	
+        
+        <h3 id="md_infos" class="uk-h4">Informations sur la fiche</h3>
+            <!--<div>Identifiant de la fiche: {{md.MD_FileIdentifier}}</div>-->
+            <label title="{{lb.MD_FileIdentifier_description}}">{{lb.MD_FileIdentifier_label}}:</label>
+                <span><code>{{md.MD_FileIdentifier}}</code></span><br />
+            <label>{{lb.MD_Language_label}}:</label>
+                <span><code>{{md.MD_Language}}</code></span><br />
+            <label>{{lb.MD_CharacterSet_label}}:</label>
+                <span><code>{{md.MD_CharacterSet}}</code></span><br />
+            <label>{{lb.MD_HierarchyLevel_label}}:</label>
+                <span><code>{{md.MD_HierarchyLevel}}</code></span><br />
+            <label>{{lb.MD_DateStamp_label}}:</label>
+                <span><code>{{md.MD_DateStamp}}</code></span><br />
+            <label>{{lb.MD_StandardName_label}}:</label>
+                <span><code>{{md.MD_StandardName}}</code> (<code>{{md.MD_StandardVersion}}</code>)</span><br />
+            <h3 id="md_contacts" class="uk-h4">Contacts pour les métadonnées</h3>
+                {{#md.MD_Contacts}}
+                    <div class="uk-grid uk-panel uk-grid-small uk-panel-box" style="margin-left: 20px;">
+                        <div class="uk-width-1-2">    
+                            {{#CntOrganism}}<div><strong>{{lb.CntOrganism_label}}: {{CntOrganism}}</strong></div>{{/CntOrganism}}
+                            {{#CntName}}<div>{{lb.CntName_label}}: {{CntName}}</div>{{/CntName}}
+                            {{#CntFunction}}<div>{{lb.CntFunction_label}}: {{CntFunction}}</div>{{/CntFunction}}
+                        </div>
+                        <div class="uk-width-1-2"> 
+                            {{#CntAddress}}
+                                <div>{{lb.CntAddress_label}}: {{CntAddress}}, {{CntPostalCode}} {{CntCity}}</div>
+                            {{/CntAddress}}
+                            {{#CntPhone}}<div>{{lb.CntPhone_label}}: {{CntPhone}}</div>{{/CntPhone}}
+                            {{#CntEmail}}<div>{{lb.CntEmail_label}}: <a href="mailto:{{CntEmail}}">{{CntEmail}}</a></div>{{/CntEmail}}
+                            {{#CntRole}}<div>{{lb.CntRole_label}}: {{CntRole}}</div>{{/CntRole}}
+                        </div>
+                    </div>
+                {{/md.MD_Contacts}}
+
+    <div id="footer" class="">
+        <div class="uk-width-1-1 uk-margin-top">
+            <span class="uk-icon-globe"></span>
+            {{app.title}}
+            <span class="uk-align-right"><small>{{app.name}} {{app.version}} - (c) Guillaume Ryckelynck / CIGAL 2014 </small></span>
+        </div>
+    </div>
+            
+</script>

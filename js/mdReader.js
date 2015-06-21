@@ -29,7 +29,7 @@ $( document ).ready(function() {
             var Data_MaintenanceFrequency = getMaintenanceFrequency($(xml), 'Data_MaintenanceFrequency');
             var Data_CharacterSet = getCharacterSet($(xml), 'Data_CharacterSet');
             var Data_GeographicExtents = getExtents($(xml), 'GeographicExtents', 'Data_Extents');
-            var Data_TemporalExtents = getExtents($(xml), 'TemporalExtents', 'data_Extents');
+            var Data_TemporalExtents = getExtents($(xml), 'TemporalExtents', 'Data_Extents');
         }
         // Data title
         var truncatevalue = 87;
@@ -242,7 +242,6 @@ $( document ).ready(function() {
         });
         return data;
     }
-    
     function getLanguages(xml, xpath_languages) {
         var data = [];
         $(xml).find(xpaths[xpath_languages]).each(function() {
@@ -325,7 +324,7 @@ $( document ).ready(function() {
         var data = [];
         $(xml).find(xpaths.Data_DQ_Conformities).each(function() {
             dc = {
-                Data_LinkageName: $(this).find(xpaths.Data_LinkageName).text(),
+                //Data_LinkageName: $(this).find(xpaths.Data_LinkageName).text(),
                 Data_DQ_ConformityTest: $(this).find(xpaths.Data_DQ_ConformityTest).text(),
                 Data_DQ_ConformityDates: getDates($(this), 'Data_DQ_ConformityDates'),
                 Data_DQ_ConformityResult: $(this).find(xpaths.Data_DQ_ConformityResult).text(),
@@ -336,9 +335,13 @@ $( document ).ready(function() {
         return data;
     }
 
+
+
     function loadContent() {
         var csw_url = urlConstruct(csw_config);
+        data['csw_url'] = csw_url;
         console.log(csw_url);
+        
         if (server_url) {
             var url_page = server_url;
             var data_page = {url: csw_url};
@@ -356,16 +359,18 @@ $( document ).ready(function() {
                 console.log('xml:' + xml);
                 data = parseXML(xml);
                 if (data.md) {
-                    console.log(1);
+                    //console.log('./templates/'+app.template);
                     $.Mustache.load('./templates/'+app.template)
                         .done(function () {
                             $('#content').empty().mustache('tpl_content', data);
                         });
+                    $.getScript("js/lib/uikit.min.js");
+                    $.getScript("js/lib/components/sticky.min.js");
                 }
         
             },
             error: function (res) {
-        alert('Imossible de lire l\'url demandée.');
+                alert('Imossible de lire l\'url demandée.');
             }
         });
     }
