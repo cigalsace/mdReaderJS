@@ -1,24 +1,20 @@
+
 html {
     font-size: 0.9em;
 }
 body {
     margin: 10px;
 }
-/*
-#content { 
-    width: 78%;
-    position:absolute;
-    background:#fff;
-}
-*/
-label, .label {
+label {
     text-decoration: underline;
 }
+/*
 label {
     display: block;
     width: 200px;
     float: left;
 }
+*/
 pre label {
     width: 100px;
     text-decoration: underline;
@@ -41,15 +37,28 @@ img.logo {
      max-width:200px;
      margin-left: -10px;
 }
-/*
-img.browse-graphic {
-     width:100%; 
-     max-height:100%; 
-     max-width:100%;
-}
-*/
 h3 {
     font-weight: bold;
+}
+.panel-body {
+  margin: 0;
+}
+#spatial-representation-type-label {
+    top: 10px;
+    right: 25px;
+    position: absolute;
+    font-size: 0.9em;
+}
+.img-thumbnail {  
+    margin-bottom: 1.5em;
+}
+.btn {
+    margin-bottom: 0.3em;
+}
+#keywords .label{
+   display:inline-block;
+   margin-bottom: 0.3em;
+   padding: 0.3em;
 }
 
 @media print {
@@ -58,32 +67,14 @@ h3 {
         max-width: 209.97 mm;
         margin: .8cm 0 2cm 0;
     }
-    #content { 
-        /*width: 700px;*/
-    }
     #menu {
         display:none;
     }
     #page {
         width: 100%;
     }
-    #page h3 {
-        /*page-break-before: always;
-        page-break-after: avoid;*/
-    }
-    pre {
-        /*white-space: pre-wrap;
-        page-break-inside: avoid;*/
-    }
-    /*div {overflow: visible;}*/
-
     div.uk-grid {
         display: block;
-        /*
-        overflow: visible;
-        page-break-before : avoid;
-        page-break-after : avoid;
-        */
     }
     div.section {
          page-break-inside: avoid;
