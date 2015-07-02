@@ -38,14 +38,13 @@ A partir d'une URL vers un serveur CSW et un identifiant de fiche transmis en pa
 
 ## Paramétrage:
 
-Les paramétrages s'affectuent dans le fichier js/config.js.
+L'url est de la forme: http://www.mondomaine.ext/chemein/vers/mdReader/?url=http://url/du/service/csw&id=identifiant_de_la_fiche&tpl=template.html
 
-[A compléter]
-
-## Utilisation:
-
-[A compléter]
+Les paramètres sont:
+- "url" = URL du serveur CSW
+- "id" = Identifiant de la fiche de métadonnées appelée par getRecordById
+- "tpl" = Nom du fichier de template (localisé dans le dssier "templates" de l'application. Le paramétrage du template par défaut s'effectue dans le fichier "js/mdReader.js".
 
 ## Démonstration:
 
-http://www.cigalsace.net/mdReaderJS/0.01/index.html?url=http://www.cigalsace.org/geonetwork-private/srv/fre/csw-geocatalogue&id=FR-236700019-ORTHO-PIR-20112012-CIGAL
+http://www.cigalsace.net/mdReaderJS/0.05/index.html?url=https://www.cigalsace.org/geonetwork/srv/fre/csw-geocatalogue&id=FR-236700019-ORTHO-PIR-20112012-CIGAL&tpl=bootstrap.html
