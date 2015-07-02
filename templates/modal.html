@@ -1,0 +1,265 @@
+<script id="tpl_content" type="text/html" >
+
+    <div class="uk-width-1-1">
+        <h1 id="data_title" class="uk-h2">{{md.Data_Title}}</h1>
+    </div>
+    
+        <div class="uk-grid" data-uk-grid-margin>
+            <div id="page" class="uk-width-medium-2-3">
+                <div>
+                    <div id="data_abstract" class="pre uk-panel uk-panel-box uk-panel-box-secondary uk-margin">{{md.Data_Abstract}}</div>
+                </div>
+                <div>
+                <div class="uk-panel uk-panel-box uk-panel-box-secondary uk-margin">
+                    <div>
+                        {{#md.Data_Dates.DateCreation}}
+                            <strong>Date de création:</strong>
+                                <span class="pre">{{md.Data_Dates.DateCreation}}</span><br />
+                        {{/md.Data_Dates.DateCreation}}
+                        {{#md.Data_Dates.DatePublication}}
+                            <strong>Date de publication:</strong>
+                                <span class="pre">{{md.Data_Dates.DatePublication}}</span><br />
+                        {{/md.Data_Dates.DatePublication}}
+                        {{#md.Data_Dates.DateRevision}}
+                            <strong>Date de mise à jour:</strong>
+                                <span class="pre">{{md.Data_Dates.DateRevision}}</span><br />
+                        {{/md.Data_Dates.DateRevision}}
+                    </div>
+                    {{#md.Data_TemporalExtents}}
+                        <div>
+                            <strong>{{Data_ExtentName}}:</strong>
+                            <span class="pre">{{Data_TemporalExtent_Begin}}</span> / 
+                            <span class="pre">{{Data_TemporalExtent_End}}</span>
+                        </div>
+                    {{/md.Data_TemporalExtents}}
+                    {{#md.Data_MaintenanceFrequency}}
+                    <div>
+                        <p>
+                            <strong>Fréquence de mise à jour:</strong>
+                            <span class="pre">{{md.Data_MaintenanceFrequency}}</span>
+                        </p>
+                    </div>
+                    {{/md.Data_MaintenanceFrequency}}
+                <!--</div>-->
+                <hr />
+                <div>
+                    <!--<div class="uk-panel uk-panel-box uk-panel-box-secondary uk-margin">-->
+                    <p><strong>Format de diffusion:</strong></p>
+                    <ul>
+                        {{#md.Data_DistFormats}}
+                            <li class="">{{Data_DistFormatName}} {{#Data_DistFormatVersion}}({{Data_DistFormatVersion}}){{/Data_DistFormatVersion}}{{#Data_DistFormatSpecification}} - {{Data_DistFormatSpecification}}{{/Data_DistFormatSpecification}}</li>
+                        {{/md.Data_DistFormats}}
+                        {{^md.Data_DistFormats}} 
+                            <li class="">Non précisé</li>
+                        {{/md.Data_DistFormats}}
+                    </ul>
+                </div>
+                <!--</div>-->
+                <hr />
+                <div>
+                    <!--<div class="uk-panel uk-panel-box uk-panel-box-secondary uk-margin">-->
+                    <p><strong>Qualité des données:</strong></p><div class="pre">{{md.Data_LI_Statement}}</div>
+                </div>
+                <!--</div>-->
+                <hr />
+                <div>
+                    <p><strong>Limite technique d'usage:</strong></p>
+                    <ul>
+                        {{#md.Data_UseLimitations}}
+                            <li class="pre">{{Data_UseLimitation}}</li>
+                        {{/md.Data_UseLimitations}}
+                        {{^md.Data_UseLimitations}}
+                            <li class="pre">Aucune limite d'usage définie.</li>
+                        {{/md.Data_UseLimitations}}
+                    </ul>
+                </div>
+                <hr />
+                <div>
+                    <!--<div class="uk-panel uk-panel-box uk-panel-box-secondary uk-margin">-->
+                        <p><strong>Droits d'accès et d'usage des données:</strong></p>
+                        <label>Classification:</label> {{md.Data_Classification}}<br />
+                        <label>Contraintes d'accès:</label><br />
+                            <ul>
+                            {{#md.Data_AccessOtherConstraints}}
+                                <li class="pre">{{Data_OtherConstraint}}</li>
+                            {{/md.Data_AccessOtherConstraints}}
+                            {{#md.Data_AccessRestrictionCodes}}
+                                <li class="pre">{{Data_RestrictionCode}}</li>
+                            {{/md.Data_AccessRestrictionCodes}}
+                            {{^md.Data_AccessRestrictionCodes}}
+                                <li class="pre">Aucune contrainte d'accès définie.</li>
+                            {{/md.Data_AccessRestrictionCodes}}
+                            </ul>
+                        <label>Contraintes légales d'usage:</label><br />
+                            <ul>
+                            {{#md.Data_Legal_UseLimitations}}
+                                <li class="pre">{{Data_UseLimitation}}</li>
+                            {{/md.Data_Legal_UseLimitations}}
+                            {{^md.Data_Legal_UseLimitations}}
+                                <li class="pre">Aucune limite légale d'usage définie.</li>
+                            {{/md.Data_Legal_UseLimitations}}
+                            </ul>
+                        <label>Limites d'usage:</label><br />
+                            <ul>
+                            {{#md.Data_UseOtherConstraints}}
+                                <li class="pre">{{Data_OtherConstraint}}</li>
+                            {{/md.Data_UseOtherConstraints}}
+                            {{#md.Data_UseRestrictionCodes}}
+                                <li class="pre">{{Data_RestrictionCode}}</li>
+                            {{/md.Data_UseRestrictionCodes}}
+                            {{^md.Data_UseRestrictionCodes}}
+                                <li class="pre">Aucune limite d'usage définie.</li>
+                            {{/md.Data_UseRestrictionCodes}}
+                            </ul>
+                    </div>
+                </div>
+                </div>
+                <div>
+                <div class="uk-panel uk-panel-box uk-panel-box-secondary uk-margin">
+                    {{#md.Data_PointOfContacts}}
+                        {{#CntRole}}
+                            <p><strong>{{CntRole}} des données:</strong></p>
+                        {{/CntRole}}
+                        {{^CntRole}}
+                            <p><strong>Contact pour les données:</strong></p>
+                        {{/CntRole}}
+                        <div class="uk-grid uk-panel uk-grid-small uk-panel-box uk-panel-box-secondary" style="margin-left: 20px;">
+                            <div class="uk-width-1-5">
+                                {{#CntLogo_url}}
+                                    <img class="logo" src="{{CntLogo_url}}" alt="{{CntLogo}}" title="{{CntLogo}}" />
+                                {{/CntLogo_url}}
+                            </div>
+                            <div class="uk-width-2-5">    
+                                {{#CntName}}<div>{{CntName}}</div>{{/CntName}}
+                                {{#CntFunction}}<div>{{CntFunction}}</div>{{/CntFunction}}
+                                {{#CntOrganism}}<div><strong>{{CntOrganism}}</strong></div>{{/CntOrganism}}
+                            </div>
+                            <div class="uk-width-2-5"> 
+                                {{#CntAddress}}
+                                    <div>{{CntAddress}}<br />{{CntPostalCode}} {{CntCity}}</div>
+                                {{/CntAddress}}
+                                {{#CntPhone}}<div>Tél: {{CntPhone}}</div>{{/CntPhone}}
+                                {{#CntEmail}}<div>Email: <a href="mailto:{{CntEmail}}">{{CntEmail}}</a></div>{{/CntEmail}}
+                                <!--{{#CntRole}}<div>Rôle: {{CntRole}}</div>{{/CntRole}}-->
+                            </div>
+                        </div>
+                    {{/md.Data_PointOfContacts}}
+                <!--</div>-->
+                <div>
+                    {{#md.MD_Contacts}}
+                        {{#CntRole}}
+                            <p><strong>{{CntRole}} de la fiche de métadonnées:</strong></p>
+                        {{/CntRole}}
+                        {{^CntRole}}
+                            <p><strong>Contact pour la fiche de métadonnées:</strong></p>
+                        {{/CntRole}}
+                        <div class="uk-grid uk-panel uk-grid-small uk-panel-box uk-panel-box-secondary" style="margin-left: 20px;">
+                            <div class="uk-width-1-2">    
+                                {{#CntName}}<div>{{CntName}}</div>{{/CntName}}
+                                {{#CntFunction}}<div>{{CntFunction}}</div>{{/CntFunction}}
+                                {{#CntOrganism}}<div><strong>{{CntOrganism}}</strong></div>{{/CntOrganism}}
+                            </div>
+                            <div class="uk-width-1-2"> 
+                                {{#CntAddress}}
+                                    <div>{{CntAddress}}<br />{{CntPostalCode}} {{CntCity}}</div>
+                                {{/CntAddress}}
+                                {{#CntPhone}}<div>Tél.: {{CntPhone}}</div>{{/CntPhone}}
+                                {{#CntEmail}}<div>Email: <a href="mailto:{{CntEmail}}">{{CntEmail}}</a></div>{{/CntEmail}}
+                                <!--{{#CntRole}}<div>Rôle: {{CntRole}}</div>{{/CntRole}}-->
+                            </div>
+                        </div>
+                    {{/md.MD_Contacts}}
+                </div>
+            </div>
+            </div>
+            </div>
+            <div id="sidebar" class="uk-width-medium-1-3">
+                <div class="uk-panel uk-margin-small">
+                    {{#md.Data_SpatialRepresentationType}}
+                        <div class="uk-panel-badge uk-badge uk-badge-danger" title="{{md.Data_SpatialRepresentationType}}">{{md.Data_SpatialRepresentationType}}</div>
+                        <!--<div class="uk-panel-badge uk-button uk-button-mini uk-button-danger uk-align-right" title="{{Data_SpatialRepresentationType}}">{{Data_SpatialRepresentationType}}</div>-->
+                    {{/md.Data_SpatialRepresentationType}}
+                    {{#md.Data_BrowseGraphics}}
+                        <div class="uk-thumbnail">
+                            <a href="{{Data_BrowseGraphic_Name}}" target="_blanck"><img class="browse-graphic uk-align-left" src="{{Data_BrowseGraphic_Name}}" alt="{{Data_BrowseGraphic_Description}}" title="{{Data_BrowseGraphic_Description}}"></a>
+                        </div>
+                    {{/md.Data_BrowseGraphics}}
+                    
+                <div class="uk-panel uk-panel-box uk-panel-box-secondary">
+                    <div class="uk-panel uk-margin">
+                        <a class="uk-button uk-button-mini uk-margin-small" >
+                            <i class="uk-icon-arrows" title="Couverture territoriale"> </i>
+                        </a>
+                        {{#md.Data_GeographicExtents}}
+                            <span class="pre" title="S:{{Data_ExtentSouthbound}}, N:{{Data_ExtentNorthbound}}, W:{{Data_ExtentWestbound}}, E:{{Data_ExtentEastbound}}">{{#Data_ExtentName}}{{Data_ExtentName}}{{/Data_ExtentName}}{{^Data_ExtentName}}Non précisé{{/Data_ExtentName}}</span><br />
+                        {{/md.Data_GeographicExtents}}
+                        {{^md.Data_GeographicExtents}}
+                            <span class="pre" title="S:0.00, N:0.00, W:0.00, E:0.00">Couverture territoriale non précisée</span><br />
+                        {{/md.Data_GeographicExtents}}
+                        
+                        {{#md.Data_ScaleDenominator}}
+                            <a class="uk-button uk-button-mini uk-margin-small" >
+                                <i class="uk-icon-search-plus" title="Echelle d'utilisation"> </i>
+                            </a>
+                            1/{{md.Data_ScaleDenominator}}<br />
+                        {{/md.Data_ScaleDenominator}}
+                        {{#md.Data_ScaleDistance}}
+                            <a class="uk-button uk-button-mini uk-margin-small" >
+                                <i class="uk-icon-search-plus" title="Résolution des données"> </i>
+                            </a>
+                            {{md.Data_ScaleDistance}} mètre(s)<br />
+                        {{/md.Data_ScaleDistance}}
+                        
+                        {{#md.Data_ReferenceSystems}}
+                            <a class="uk-button uk-button-mini uk-margin-small" >
+                                <i class="uk-icon-globe" title="Système de projection"> </i>
+                            </a>
+                            {{Data_ReferenceSystemCode}}
+                            {{#Data_ReferenceSystemCodespace}} ({{Data_ReferenceSystemCodespace}}) {{/Data_ReferenceSystemCodespace}}
+                            <br />
+                        {{/md.Data_ReferenceSystems}}
+                    </div>
+                    <hr />
+                    <div class="uk-panel uk-margin-small">
+                    {{#md.Data_TopicCategories}}
+                        <span title="{{Data_TopicCategory}}" class="uk-badge uk-align-left uk-margin-small uk-badge-warning">{{Data_TopicCategory}}</span>
+                    {{/md.Data_TopicCategories}}
+                    {{#md.Data_Keywords}}
+                        <span title="{{Data_Keyword}}" class="uk-badge uk-align-left uk-margin-small">{{Data_Keyword}}</span>
+                    {{/md.Data_Keywords}}
+                    </div>
+                    <hr />
+                    <div class="uk-panel uk-margin-small">
+                        <!--<a class="uk-button uk-button-mini uk-margin-small" >
+                            <i class="uk-icon-eye" title="Ressources associés"> </i>
+                        </a>-->
+                        <strong>Ressources associés:</strong>
+                        <ul>
+                        {{#md.Data_Linkages}}
+                            <li><a href="{{Data_LinkageURL}}" target="_blanck" title="{{Data_LinkageName}}">{{Data_LinkageDescription}}</a></li>
+                        {{/md.Data_Linkages}}
+                        {{^md.Data_Linkages}}
+                            <li>Aucune ressource liée disponible.</li>
+                        {{/md.Data_Linkages}}
+                    </div>
+                    <hr />
+                    <div class="uk-panel uk-margin-small">
+                        <!--<strong>Ressources associés:</strong>-->
+                        <ul>
+                        {{#csw_url}}
+                            <li class=""><a href="{{csw_url}}" target="_blank"><i class="uk-icon-download uk-margin-small-right"></i>Télécharger la fiche (XML)</a></li>
+                        {{/csw_url}}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="uk-grid" data-uk-grid-margin>
+            <div id="modal-footer" class="uk-width-1-1 uk-margin-top">
+                <span class="uk-icon-globe"></span>
+                <small>{{app.title}}
+                 - <em>Fiche {{md.MD_FileIdentifier}} ({{md.MD_Language}}) mise à jour le: {{md.MD_DateStamp}}</em>
+                <span class="uk-align-right">{{app.name}} {{app.version}} - (c) Guillaume Ryckelynck / CIGAL 2014</span><small>
+            </div>
+        </div>
+</script>

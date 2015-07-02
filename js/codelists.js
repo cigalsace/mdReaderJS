@@ -29,6 +29,7 @@ var MD_TopicCategoryCode = {
     utilitiesCommunication: "Réseaux de télécommunication, d’énergie"
 };
 
+
 // Liste des valeurs
 var MD_CharacterSetCode = {
     ucs2: "ucs2", 
