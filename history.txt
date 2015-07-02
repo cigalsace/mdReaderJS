@@ -1,5 +1,9 @@
 mdReaderJS
 
+## v. 0.04:
+27/06/15:
+    - Passage de Uikit à Tweeter Bootstrap comme framework de rendu (cf. templates/bootstrap.html)
+
 # v. 0.03:
 
 21/01/15:
