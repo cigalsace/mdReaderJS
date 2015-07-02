@@ -44,6 +44,7 @@ csw_config.xml_dir = url_vars.xml_dir;
 
 // Initialisation de la variable globale data
 var data = {};
+data['lb'] = lb[lang];
 data['app'] = app;
 data['csw_config'] = csw_config;
 
@@ -74,7 +75,7 @@ var mdReader = angular.module('mdReader',[]);
 // Contrôleur de l'application mdReader
 mdReader.controller('mdReaderCtrl', ['$scope', '$http', function ($scope, $http) {
     $scope.xml = '';
-    $scope.data = {}
+    $scope.data = data;
     // console.log(url_page);
     // console.log(data_page);
     
@@ -86,8 +87,10 @@ mdReader.controller('mdReaderCtrl', ['$scope', '$http', function ($scope, $http)
         data : data_page
     }).success(function(data, status, headers, config) {
         // console.log(data);  // XML document object
-        $scope.data = readXML(data);
-        // console.log($scope.data);
+        //$scope.data = readXML(data);
+        //$scope.data.md = {};
+        $scope.data.md = readXML(data);
+         console.log($scope.data);
     }).error(function(data, status, headers, config) {
         console.log("Erreur: impossible de lire l'url demandée.");
         alert("Impossible de lire l'url demandée.");
