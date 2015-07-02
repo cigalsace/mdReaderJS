@@ -84,9 +84,8 @@ function readXML(xml) {
         Data_LI_Statement: $(xml).find(xpaths.Data_LI_Statement).text(),
         Data_DQ_Conformities: getConformities($(xml))
     }
-    data.md = md;
-    data.lb = lb[lang];
-    return data;
+    //data.md = md;
+    return md;
 }
 function getFileIdentifier(xml) {
     return $(xml).find(xpaths.MD_FileIdentifier).text();
