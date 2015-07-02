@@ -20,10 +20,9 @@ Cette application s'inspire des travaux réalisé pour le sViewer développé pa
 
 Le module cswReaderJS est développé principalement via du JavaScript, du HTML, du CSS 3. Il s'apuie notamment sur les bibliothèques suivantes:
 
-- JQuery pour l'interaction javacript
-- Angular JS comme système de template pour la mise en forme des pages HTML (à remplacé Mustache et Mustache.js depuis la version 0.05 de mdReader)
-- Tweeter Bootstrap pour la présentation des pages et le rendu (à remplacé Uikit depuis la version 0.04 de mdReader)
-
+JQuery pour l'interaction javacript
+Mustache et Mustache.js comme système de template pour la mise en forme des pages HTML
+Uikit pour la présentation des pages et le rendu
 Un script PHP est utilisé pour appeler les pages distantes et permettre de réaliser des requêtes AJAX "cross-domain".
 Il peut être facilement remplacé par un script dans un autre langage comme Python, Java ou autre (développement à prévoir).
 
@@ -39,13 +38,14 @@ A partir d'une URL vers un serveur CSW et un identifiant de fiche transmis en pa
 
 ## Paramétrage:
 
-L'url est de la forme: http://www.mondomaine.ext/chemein/vers/mdReader/?url=http://url/du/service/csw&id=identifiant_de_la_fiche&tpl=template.html
+Les paramétrages s'affectuent dans le fichier js/config.js.
 
-Les paramètres sont:
-- "url" = URL du serveur CSW
-- "id" = Identifiant de la fiche de métadonnées appelée par getRecordById
-- "tpl" = Nom du fichier de template (localisé dans le dssier "templates" de l'application. Le paramétrage du template par défaut s'effectue dans le fichier "js/mdReader.js".
+[A compléter]
+
+## Utilisation:
+
+[A compléter]
 
 ## Démonstration:
 
-http://www.cigalsace.net/mdReaderJS/0.05/index.html?url=https://www.cigalsace.org/geonetwork/srv/fre/csw-geocatalogue&id=FR-236700019-ORTHO-PIR-20112012-CIGAL&tpl=bootstrap.html
+http://www.cigalsace.net/mdReaderJS/0.01/index.html?url=http://www.cigalsace.org/geonetwork-private/srv/fre/csw-geocatalogue&id=FR-236700019-ORTHO-PIR-20112012-CIGAL
