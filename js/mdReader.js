@@ -87,10 +87,8 @@ mdReader.controller('mdReaderCtrl', ['$scope', '$http', function ($scope, $http)
         data : data_page
     }).success(function(data, status, headers, config) {
         // console.log(data);  // XML document object
-        //$scope.data = readXML(data);
-        //$scope.data.md = {};
         $scope.data.md = readXML(data);
-         console.log($scope.data);
+        // console.log($scope.data);
     }).error(function(data, status, headers, config) {
         console.log("Erreur: impossible de lire l'url demandée.");
         alert("Impossible de lire l'url demandée.");
