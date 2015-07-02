@@ -40,11 +40,10 @@ A partir d'une URL vers un serveur CSW et un identifiant de fiche transmis en pa
 ## Paramétrage:
 
 L'url est de la forme: http://www.mondomaine.ext/chemein/vers/mdReader/?url=http://url/du/service/csw&id=identifiant_de_la_fiche&tpl=template.html
-
 Les paramètres sont:
-- "url" = URL du serveur CSW
-- "id" = Identifiant de la fiche de métadonnées appelée par getRecordById
-- "tpl" = Nom du fichier de template (localisé dans le dssier "templates" de l'application. Le paramétrage du template par défaut s'effectue dans le fichier "js/mdReader.js".
+    - "url" = URL du serveur CSW
+    - "id" = Identifiant de la fiche de métadonnées appelée par getRecordById
+    - "tpl" = Nom du fichier de template (localisé dans le dssier "templates" de l'application. Le paramétrage du template par défaut s'effectue dans le fichier "js/mdReader.js".
 
 ## Démonstration:
 
