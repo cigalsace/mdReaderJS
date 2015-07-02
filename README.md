@@ -49,4 +49,4 @@ Les paramétrages s'affectuent dans le fichier js/config.js.
 
 ## Démonstration:
 
-http://www.cigalsace.net/mdReaderJS/0.01/index.html?url=http://www.cigalsace.org/geonetwork-private/srv/fre/csw-geocatalogue&id=FR-236700019-ORTHO-PIR-20112012-CIGAL
+http://www.cigalsace.net/mdReaderJS/0.04/index.html?url=https://www.cigalsace.org/geonetwork/srv/fre/csw-geocatalogue&id=FR-236700019-ORTHO-PIR-20112012-CIGAL&tpl=bootstrap.html
