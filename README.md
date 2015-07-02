@@ -18,11 +18,12 @@ Cette application s'inspire des travaux réalisé pour le sViewer développé pa
 
 ## Technologie:
 
-Le module cswReaderJS est développé principalement via du JavaScript, du HTML, du CSS 3. Il s'apuie notamment sur les bibliothèques suivantes:
+Le module mdReaderJS est développé principalement via du JavaScript, du HTML, du CSS 3. Il s'apuie notamment sur les bibliothèques suivantes:
 
-JQuery pour l'interaction javacript
-Mustache et Mustache.js comme système de template pour la mise en forme des pages HTML
-Uikit pour la présentation des pages et le rendu
+- JQuery pour l'interaction javacript
+- Mustache et Mustache.js comme système de template pour la mise en forme des pages HTML
+- Tweeter Bootstrap pour la présentation des pages et le rendu (depuis la version 0.04 - avant, utilisation de Uikit)
+
 Un script PHP est utilisé pour appeler les pages distantes et permettre de réaliser des requêtes AJAX "cross-domain".
 Il peut être facilement remplacé par un script dans un autre langage comme Python, Java ou autre (développement à prévoir).
 
